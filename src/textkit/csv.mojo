@@ -43,7 +43,7 @@ fn parse_csv(input: String) -> List[List[String]]:
             else:
                 i += 1
     if i > start:
-        row.append(input[start:i] if not has_quotes else input[start:i].replace("\"\"", "\""))
+        row.append(input[start:i])
     if len(row) > 0:
         rows.append(row)
     return rows
