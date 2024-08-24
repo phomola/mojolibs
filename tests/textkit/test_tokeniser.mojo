@@ -1,5 +1,14 @@
 from testing import assert_equal, assert_true
-from textkit import tokenise, Token, symbol, string, number, eol, eof
+from textkit import tokenise, Token, symbol, string, number, eol, eof, unquote
+
+fn test_unquote() raises:
+    assert_equal("\"abcd", unquote("\\\"abcd"))
+    assert_equal("abcd\"", unquote("abcd\\\""))
+    assert_equal("ab\"cd", unquote("ab\\\"cd"))
+    assert_equal("ab\\cd", unquote("ab\\\\cd"))
+    assert_equal("ab\ncd", unquote("ab\\ncd"))
+
+# fn test_tokenise_with_unquote() raises:
 
 fn test_tokenise_without_eol() raises:
     var tokens = tokenise("""
