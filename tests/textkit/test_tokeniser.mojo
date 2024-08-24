@@ -1,5 +1,19 @@
 from testing import assert_equal, assert_true
-from textkit import tokenise, Token, symbol, string, number, eol, eof
+from textkit import tokenise, Token, word, symbol, string, number, eol, eof, unquote
+
+fn test_unquote() raises:
+    assert_equal("\"abcd", unquote("\\\"abcd"))
+    assert_equal("abcd\"", unquote("abcd\\\""))
+    assert_equal("ab\"cd", unquote("ab\\\"cd"))
+    assert_equal("ab\\cd", unquote("ab\\\\cd"))
+    assert_equal("ab\ncd", unquote("ab\\ncd"))
+
+fn test_tokenise_with_unquote() raises:
+    var tokens = tokenise("abcd \"ab\\\"cd\"\n\n")
+    assert_equal(3, len(tokens))
+    assert_true(Token(word, "abcd", 1, 1) == tokens[0], msg="actual: " + str(tokens[0]))
+    assert_true(Token(string, "ab\"cd", 1, 6) == tokens[1], msg="actual: " + str(tokens[1]))
+    assert_true(Token(eof, "", 3, 1) == tokens[2], msg="actual: " + str(tokens[2]))
 
 fn test_tokenise_without_eol() raises:
     var tokens = tokenise("""

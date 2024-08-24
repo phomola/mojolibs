@@ -40,6 +40,7 @@ fn tokenise(text: String, keep_eol: Bool = False) -> List[Token]:
     var state = 0
     var start = 0
     var esc = False
+    var has_esc = False
     while True:
         if state == 0:
             while i < len(text):
@@ -73,7 +74,7 @@ fn tokenise(text: String, keep_eol: Bool = False) -> List[Token]:
                 state = 0
         elif state == string:
             if r == "\"" and not esc:
-                tokens.append(Token(string, unquote(text[start:i]), line1, col1))
+                tokens.append(Token(string, text[start:i] if not has_esc else unquote(text[start:i]), line1, col1))
                 state = 0
                 col += 1
                 i += 1
@@ -81,6 +82,7 @@ fn tokenise(text: String, keep_eol: Bool = False) -> List[Token]:
                 if r == "\\" and not esc:
                     col += 1
                     esc = True
+                    has_esc = True
                 elif r == "\n":
                     line += 1
                     col = 1
@@ -106,6 +108,7 @@ fn tokenise(text: String, keep_eol: Bool = False) -> List[Token]:
                 col += 1
             elif r == "\"":
                 state = string
+                has_esc = False
                 i += 1
                 start = i
                 line1 = line
@@ -120,7 +123,7 @@ fn tokenise(text: String, keep_eol: Bool = False) -> List[Token]:
     elif state == number:
         tokens.append(Token(number, text[start:i], line1, col1))
     elif state == string:
-        tokens.append(Token(string, unquote(text[start:i]), line1, col1))
+        tokens.append(Token(string, text[start:i] if not has_esc else unquote(text[start:i]), line1, col1))
     tokens.append(Token(eof, "", line, col))
     return tokens
 
