@@ -9,11 +9,12 @@ fn test_unquote() raises:
     assert_equal("ab\ncd", unquote("ab\\ncd"))
 
 fn test_tokenise_with_unquote() raises:
-    var tokens = tokenise("abcd \"ab\\\"cd\"\n\n")
-    assert_equal(3, len(tokens))
+    var tokens = tokenise("abcd \"ab\\\"cd\" .\n\n")
+    assert_equal(4, len(tokens))
     assert_true(Token(word, "abcd", 1, 1) == tokens[0], msg="actual: " + str(tokens[0]))
     assert_true(Token(string, "ab\"cd", 1, 6) == tokens[1], msg="actual: " + str(tokens[1]))
-    assert_true(Token(eof, "", 3, 1) == tokens[2], msg="actual: " + str(tokens[2]))
+    assert_true(Token(symbol, ".", 1, 15) == tokens[2], msg="actual: " + str(tokens[2]))
+    assert_true(Token(eof, "", 3, 1) == tokens[3], msg="actual: " + str(tokens[3]))
 
 fn test_tokenise_without_eol() raises:
     var tokens = tokenise("""
