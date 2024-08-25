@@ -80,11 +80,10 @@ fn _parse_json_value(tokens: List[Token], inout i: Int) raises -> Variant[Int, F
         if t.form == "true":
             i += 1
             return True
-        elif t.form == "false":
+        if t.form == "false":
             i += 1
             return False
-        else:
-            raise Error("expected 'true' or 'false' at " + str(t.line) + ":" + str(t.column))
+        raise Error("expected 'true' or 'false' at " + str(t.line) + ":" + str(t.column))
     if t.type == string:
         i += 1
         return t.form
@@ -93,13 +92,12 @@ fn _parse_json_value(tokens: List[Token], inout i: Int) raises -> Variant[Int, F
         var t2 = tokens[i]
         if t2.form != ".":
             return atol(t.form)
-        else:
-            i += 1
-            var t3 = tokens[i]
-            if t3.type != number:
-                raise Error("expected number at " + str(t.line) + ":" + str(t.column))
-            i += 1
-            return atof(t.form + "." + t3.form)
+        i += 1
+        var t3 = tokens[i]
+        if t3.type != number:
+            raise Error("expected number at " + str(t.line) + ":" + str(t.column))
+        i += 1
+        return atof(t.form + "." + t3.form)
     if t.form == "{":
         return _parse_json_object(tokens, i)
     if t.form == "[":
