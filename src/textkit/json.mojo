@@ -15,6 +15,16 @@ fn parse_json_object(input: String) raises -> JSONObject:
     var i = 0
     return _parse_json_object(tokens, i)
 
+fn parse_json_array(input: String) raises -> JSONArray:
+    var tokens = tokenise(input)
+    var i = 0
+    return _parse_json_array(tokens, i)
+
+fn parse_json_value(input: String) raises -> Variant[Int, Float64, String, Bool, JSONObject, JSONArray]:
+    var tokens = tokenise(input)
+    var i = 0
+    return _parse_json_value(tokens, i)
+
 fn _parse_json_object(tokens: List[Token], inout i: Int) raises -> JSONObject:
     var t = tokens[i]
     if t.type == eof:
