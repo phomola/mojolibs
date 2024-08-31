@@ -41,7 +41,7 @@ struct AVM(Stringable):
                     if s1 == s2:
                         fs[key] = s1
                     else:
-                        return Optional[AVM](None)
+                        return None
                 elif val1.isa[AVM]() and val2[].isa[AVM]():
                     var avm1 = val1[AVM]
                     var avm2 = val2[][AVM]
@@ -49,9 +49,9 @@ struct AVM(Stringable):
                     if avm:
                         fs[key] = avm.value()[]
                     else:
-                        return Optional[AVM](None)
+                        return None
                 else:
-                    return Optional[AVM](None)
+                    return None
             else:
                 fs[key] = val1
         for it in avm2.features.items():
@@ -194,13 +194,13 @@ fn example_irish1():
         if avmo:
             return Optional(AVM(AVP("obj", avmo.value()[])))
         else:
-            return Optional[AVM](None)
+            return None
     fn sNpVpAvm(avms: List[AVM]) -> Optional[AVM]:
         var avmo = avms[0].unify(AVM(AVP("case", str("nom"))))
         if avmo:
             return avms[1].unify(AVM(AVP("subj", avmo.value()[])))
         else:
-            return Optional[AVM](None)
+            return None
     fn ipISAvm(avms: List[AVM]) -> Optional[AVM]:
         return avms[0].unify(avms[1])        
     var grammar = Grammar(List(
@@ -228,19 +228,19 @@ fn example_irish2():
         if avmo:
             return avms[0].unify(AVM(AVP("obj", avmo.value()[])))
         else:
-            return Optional[AVM](None)
+            return None
     fn vpPVbAvm(avms: List[AVM]) -> Optional[AVM]:
         var avmo = avms[0].unify(AVM(AVP("prep", str("ag"))))
         if avmo:
             return avms[1]
         else:
-            return Optional[AVM](None)
+            return None
     fn sNpVpAvm(avms: List[AVM]) -> Optional[AVM]:
         var avmo = avms[0].unify(AVM(AVP("case", str("nom"))))
         if avmo:
             return avms[1].unify(AVM(AVP("subj", avmo.value()[])))
         else:
-            return Optional[AVM](None)
+            return None
     fn ipISAvm(avms: List[AVM]) -> Optional[AVM]:
         return avms[0].unify(avms[1])        
     var grammar = Grammar(List(
