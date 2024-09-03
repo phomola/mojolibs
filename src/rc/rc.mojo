@@ -31,8 +31,8 @@ struct RC[T: CollectionElement]:
     fn ref_count(self) -> Int64:
         return self.pc[].count
 
-    fn __getitem__(self) -> T:
+    fn __getitem__(self) -> ref[__lifetime_of(self)] T:
         return self.pc[].val
 
-    fn __setitem__(inout self, val: T):
+    fn set(inout self, val: T):
         self.pc[].val = val
