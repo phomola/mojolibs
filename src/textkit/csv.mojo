@@ -1,6 +1,10 @@
 from utils import Variant
 from collections import List, Dict, Optional
 
+alias comma = ord(",")
+alias newline = ord("\n")
+alias quote = ord("\"")
+
 fn parse_csv(input: String) -> List[List[String]]:
     var rows = List[List[String]]()
     var i = 0
@@ -8,22 +12,23 @@ fn parse_csv(input: String) -> List[List[String]]:
     var has_quotes = False
     var row = List[String]()
     var start = 0
-    while i < len(input):
-        var c = input[i]
+    var bytes = input.as_bytes()
+    while i < len(bytes):
+        var c = bytes[i]
         if not quoted:
-            if c == ",":
+            if c == comma:
                 if start < i:
                     row.append(input[start:i])
                 i += 1
                 start = i
-            elif c == "\n":
+            elif c == newline:
                 if start < i:
                     row.append(input[start:i])
                 i += 1
                 start = i
                 rows.append(row)
                 row = List[String]()
-            elif c == "\"":
+            elif c == quote:
                 quoted = True
                 has_quotes = False
                 i += 1
@@ -31,8 +36,8 @@ fn parse_csv(input: String) -> List[List[String]]:
             else:
                 i += 1
         else:
-            if c == "\"":
-                if i+1 < len(input) and input[i+1] == "\"":
+            if c == quote:
+                if i+1 < len(bytes) and bytes[i+1] == quote:
                     i += 2
                     has_quotes = True
                 else:

@@ -8,6 +8,19 @@ alias symbol = 4
 alias eol    = 5
 alias eof    = 6
 
+alias newline = ord("\n")
+alias quote = ord("\"")
+alias backslash = ord("\\")
+alias space = ord(" ")
+alias linefeed = ord("\r")
+alias tab = ord("\t")
+alias zero = ord("0")
+alias nine = ord("9")
+alias char_A = ord("A")
+alias char_Z = ord("Z")
+alias char_a = ord("a")
+alias char_z = ord("z")
+
 @value
 struct Token:
     var type: Int
@@ -30,6 +43,15 @@ fn is_alpha(s: String) -> Bool:
 fn is_number(s: String) -> Bool:
     return s >= "0" and s <= "9"
 
+fn is_white_char(c: UInt8) -> Bool:
+    return c == space or c == linefeed or c == newline or c == tab
+
+fn is_alpha(c: UInt8) -> Bool:
+    return c >= char_A and c <= char_Z or c >= char_a and c <= char_z
+
+fn is_number(c: UInt8) -> Bool:
+    return c >= zero and c <= nine
+
 fn tokenise(text: String, keep_eol: Bool = False) -> List[Token]:
     var tokens = List[Token]()
     var i = 0
@@ -41,11 +63,12 @@ fn tokenise(text: String, keep_eol: Bool = False) -> List[Token]:
     var start = 0
     var esc = False
     var has_esc = False
+    var bytes = text.as_bytes()
     while True:
         if state == 0:
-            while i < len(text):
-                var r = text[i]
-                if r == "\n":
+            while i < len(bytes):
+                var r = bytes[i]
+                if r == newline:
                     if keep_eol:
                         tokens.append(Token(eol, "\n", line, col))
                     line += 1
@@ -55,9 +78,9 @@ fn tokenise(text: String, keep_eol: Bool = False) -> List[Token]:
                 else:
                     col += 1
                 i += 1
-        if i == len(text):
+        if i == len(bytes):
             break
-        var r = text[i]
+        var r = bytes[i]
         if state == word:
             if is_alpha(r) or is_number(r):
                 i += 1
@@ -73,17 +96,17 @@ fn tokenise(text: String, keep_eol: Bool = False) -> List[Token]:
                 tokens.append(Token(number, text[start:i], line1, col1))
                 state = 0
         elif state == string:
-            if r == "\"" and not esc:
+            if r == quote and not esc:
                 tokens.append(Token(string, text[start:i] if not has_esc else unquote(text[start:i]), line1, col1))
                 state = 0
                 col += 1
                 i += 1
             else:
-                if r == "\\" and not esc:
+                if r == backslash and not esc:
                     col += 1
                     esc = True
                     has_esc = True
-                elif r == "\n":
+                elif r == newline:
                     line += 1
                     col = 1
                     esc = False
@@ -106,7 +129,7 @@ fn tokenise(text: String, keep_eol: Bool = False) -> List[Token]:
                 line1 = line
                 col1 = col
                 col += 1
-            elif r == "\"":
+            elif r == quote:
                 state = string
                 has_esc = False
                 i += 1
