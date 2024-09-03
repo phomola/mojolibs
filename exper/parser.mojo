@@ -78,17 +78,107 @@ fn _parse_rule(tokens: List[Token], inout i: Int) raises -> Rule:
     if t.form != ">":
         raise Error("expected '>' at " + str(t.line) + ":" + str(t.column))
     var rhs = List[String]()
+    var idx = 0
+    i += 1
+    t = tokens[i]
+    var annotations = List[Annotation]()
     while True:
-        i += 1
-        t = tokens[i]
         if t.form == ".":
             i += 1
-            fn sameAvm(avms: List[AVM]) -> Optional[AVM]:
-                return Optional(avms[0])
-            return Rule(lhs, rhs, sameAvm)
+            fn f(avms: List[AVM]) -> Optional[AVM]:
+                var avm = AVM(Dict[String, Variant[String, AVM]]())
+                for annotation in annotations:
+                    if len(annotation[].path) == 0:
+                        var avm_opt = avm.unify(avms[annotation[].idx])
+                        if avm_opt:
+                            avm = avm_opt.value()[]
+                        else:
+                            return None
+                    else:
+                        if annotation[].value == "":
+                            var avm_opt = avm.unify(annotation[].get_avm(avms[annotation[].idx]))
+                            if avm_opt:
+                                avm = avm_opt.value()[]
+                            else:
+                                return None
+                        else:
+                            var avm_opt = avm.unify(annotation[].get_avm(annotation[].value))
+                            if avm_opt:
+                                avm = avm_opt.value()[]
+                            else:
+                                return None
+                return avm
+            return Rule(lhs, rhs, f)
         if t.type != word:
-            raise Error("expected identifier at " + str(t.line) + ":" + str(t.column))
+            raise Error("expected identifier or '.' at " + str(t.line) + ":" + str(t.column))
         rhs.append(t.form)
+        i += 1
+        for annotation in _parse_annotations(tokens, i, idx):
+            annotations.append(annotation[])
+        t = tokens[i]
+        idx += 1
+
+@value
+struct Annotation:
+    var idx: Int
+    var path: List[String]
+    var value: String
+
+    fn get_avm(self, value: Variant[String, AVM]) -> AVM:
+        var avm = AVM(Dict[String, Variant[String, AVM]]())
+        avm.features[self.path[len(self.path)-1]] = value
+        for i in range(len(self.path)-2, -1, -1):
+            var avm2 = AVM(Dict[String, Variant[String, AVM]]())
+            avm2.features[self.path[i]] = avm
+            avm = avm2
+        return avm
+
+fn _parse_annotations(tokens: List[Token], inout i: Int, idx: Int) raises -> List[Annotation]:
+    var t = tokens[i]
+    if t.type == eof:
+        raise Error("unexpected EOF")
+    if t.form != "(":
+        raise Error("expected '(' at " + str(t.line) + ":" + str(t.column))
+    i += 1
+    t = tokens[i]
+    var annotations = List[Annotation]()
+    while True:
+        if t.form == ")":
+            i += 1
+            return annotations
+        if t.form == "=":
+            annotations.append(Annotation(idx, List[String](), ""))
+        elif t.form == ">":
+            i += 1
+            t = tokens[i]
+            if t.type != word:
+                raise Error("expected identifier at " + str(t.line) + ":" + str(t.column))
+            annotations.append(Annotation(idx, List(t.form), ""))
+        elif t.type == word:
+            var path = List[String]()
+            while True:
+                if t.type != word:
+                    raise Error("expected identifier at " + str(t.line) + ":" + str(t.column))
+                path.append(t.form)
+                i += 1
+                t = tokens[i]
+                if t.form == ".":
+                    i += 1
+                    t = tokens[i]
+                elif t.form == "=":
+                    break
+                else:
+                    raise Error("expected '=' or '.' at " + str(t.line) + ":" + str(t.column))
+            i += 1
+            t = tokens[i]
+            if t.type != word:
+                raise Error("expected identifier at " + str(t.line) + ":" + str(t.column))
+            var value = t.form
+            annotations.append(Annotation(idx, path, value))
+        else:
+            raise Error("expected '=', '>', ')' or identifier at " + str(t.line) + ":" + str(t.column))
+        i += 1
+        t = tokens[i]
 
 fn _parse_chart(tokens: List[Token], inout i: Int) raises -> Chart:
     var t = tokens[i]
@@ -120,6 +210,7 @@ fn _parse_edge(tokens: List[Token], inout i: Int) raises -> Edge:
         raise Error("expected identifier at " + str(t.line) + ":" + str(t.column))
     var cat = t.form
     i += 1
+    var avm = _parse_avm(tokens, i)
     t = tokens[i]
     if t.form != "-":
         raise Error("expected '-' at " + str(t.line) + ":" + str(t.column))
@@ -134,7 +225,36 @@ fn _parse_edge(tokens: List[Token], inout i: Int) raises -> Edge:
         raise Error("expected '-' at " + str(t.line) + ":" + str(t.column))
     i += 1
     t = tokens[i]
-    return Edge(start, end, cat, AVM(List[AVP]()), 0, List[RC[Edge]]())
+    return Edge(start, end, cat, avm, 0, List[RC[Edge]]())
+
+fn _parse_avm(tokens: List[Token], inout i: Int) raises -> AVM:
+    var t = tokens[i]
+    if t.type == eof:
+        raise Error("unexpected EOF")
+    if t.form != "[":
+        raise Error("expected '[' at " + str(t.line) + ":" + str(t.column))
+    i += 1
+    t = tokens[i]
+    var features = Dict[String, Variant[String, AVM]]()
+    while True:
+        if t.form == "]":
+            i += 1
+            return AVM(features)
+        if t.type != word:
+            raise Error("expected identifier  or ']' at " + str(t.line) + ":" + str(t.column))
+        var key = t.form
+        i += 1
+        t = tokens[i]
+        if t.form != ":":
+            raise Error("expected ':' at " + str(t.line) + ":" + str(t.column))
+        i += 1
+        t = tokens[i]
+        if t.type != string:
+            raise Error("expected identifier at " + str(t.line) + ":" + str(t.column))
+        var value = t.form
+        features[key] = value
+        i += 1
+        t = tokens[i]
 
 # fn example_english():
 #     var chart = Chart()

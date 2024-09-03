@@ -57,7 +57,7 @@ struct Edge(Stringable):
 struct Rule(Stringable):
     var lhs: String
     var rhs: List[String]
-    var avmfn: fn(List[AVM]) -> Optional[AVM]
+    var avmfn: fn(List[AVM]) escaping -> Optional[AVM]
 
     fn __str__(self) -> String:
         var s: String = self.lhs + " ->"

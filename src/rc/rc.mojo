@@ -38,5 +38,5 @@ struct RC[T: Movable]:
     fn __getitem__(self) -> ref[__lifetime_of(self)] T:
         return self.pc[].val
 
-    fn set(inout self, val: T):
-        self.pc[].val = val
+    fn set(inout self, owned val: T):
+        self.pc[].val = val^
