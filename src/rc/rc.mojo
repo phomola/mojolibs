@@ -18,8 +18,7 @@ struct RC[T: CollectionElement]:
 
     fn __init__(inout self, owned val: T):
         self.pc = UnsafePointer[PointerCount[T]].alloc(1)
-        self.pc[].val = val^
-        self.pc[].count = 1
+        __get_address_as_uninit_lvalue(self.pc.address) = PointerCount[T](val^)
     
     fn __copyinit__(inout self, ex: Self):
         self.pc = ex.pc
