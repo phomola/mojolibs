@@ -3,6 +3,7 @@ from nlp.chart_parser import Chart, Edge, Grammar, Rule
 from textkit import tokenise, Token, word, symbol, string, number, eol, eof
 from sys import argv, stderr, exit
 from pathlib import Path
+from rc import RC
 
 fn main():
     var args = argv()
@@ -133,7 +134,7 @@ fn _parse_edge(tokens: List[Token], inout i: Int) raises -> Edge:
         raise Error("expected '-' at " + str(t.line) + ":" + str(t.column))
     i += 1
     t = tokens[i]
-    return Edge(start, end, cat, AVM(List[AVP]()), 0, List[UnsafePointer[Edge]]())
+    return Edge(start, end, cat, AVM(List[AVP]()), 0, List[RC[Edge]]())
 
 # fn example_english():
 #     var chart = Chart()

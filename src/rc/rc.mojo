@@ -19,12 +19,12 @@ struct RC[T: CollectionElement]:
         self.pc[].val = val
         self.pc[].count = 1
     
-    fn __copyinit__(inout self, ex: RC):
-        self.pc = UnsafePointer[PointerCount[T]](address=int(ex.pc))
+    fn __copyinit__(inout self, ex: RC[T]):
+        self.pc = ex.pc
         self.pc[].count += 1
         
-    fn __moveinit__(inout self, owned ex: RC):
-        self.pc = UnsafePointer[PointerCount[T]](address=int(ex.pc))
+    fn __moveinit__(inout self, owned ex: RC[T]):
+        self.pc = ex.pc
         
     fn __del__(owned self):
         var old_count = self.pc[].count.fetch_sub(1)
