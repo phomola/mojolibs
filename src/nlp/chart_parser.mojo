@@ -9,9 +9,48 @@ struct Edge(Stringable):
     var category: String
     var avm: AVM
     var level: Int
+    var children: List[String]
+
+    # fn __init__(inout self, start: Int, end: Int, category: String, avm: AVM, level: Int, children: List[String]):
+    #     self.start = start
+    #     self.end = end
+    #     self.category = category
+    #     self.avm = avm
+    #     self.level = level
+    #     self.children = children
+
+    # fn __copyinit__(inout self, edge: Edge):
+    #     self.start = edge.start
+    #     self.end = edge.end
+    #     self.category = edge.category
+    #     self.avm = edge.avm
+    #     self.level = edge.level
+    #     self.children = edge.children
+
+    # fn __moveinit__(inout self, owned edge: Edge):
+    #     self.start = edge.start
+    #     self.end = edge.end
+    #     self.category = edge.category^
+    #     self.avm = edge.avm^
+    #     self.level = edge.level
+    #     self.children = edge.children^
 
     fn __str__(self) -> String:
-        return "-" + str(self.start) + "- " + self.category + " " + str(self.avm) + " -" + str(self.end) + "-"
+        return "-" + str(self.start) + "- " + self.tree() + " " + str(self.avm) + " -" + str(self.end) + "-"
+
+    fn tree(self) -> String:
+        var s = self.category
+        if len(self.children) > 0:
+            s += "("
+            var first = True
+            for el in self.children:
+                if first:
+                    first = False
+                else:
+                    s += ","
+                s += el[]
+            s += ")"
+        return s
 
 @value
 struct Rule(Stringable):
@@ -77,7 +116,7 @@ struct Chart(Stringable):
                                 var avm_opt = rule[].avmfn(List(edge1[].avm))
                                 if avm_opt:
                                     var avm = avm_opt.value()
-                                    var edge = Edge(edge1[].start, edge1[].end, rule[].lhs, avm[], level + 1)
+                                    var edge = Edge(edge1[].start, edge1[].end, rule[].lhs, avm[], level + 1, List(edge1[].tree()))
                                     newEdges.append(edge)
                     elif rule[].rhs.size == 2:
                         var edges_opt = self.edges.get(edge1[].end)
@@ -88,7 +127,7 @@ struct Chart(Stringable):
                                         var avm_opt = rule[].avmfn(List(edge1[].avm, edge2[].avm))
                                         if avm_opt:
                                             var avm = avm_opt.value()
-                                            var edge = Edge(edge1[].start, edge2[].end, rule[].lhs, avm[], level + 1)
+                                            var edge = Edge(edge1[].start, edge2[].end, rule[].lhs, avm[], level + 1, List(edge1[].tree(), edge2[].tree()))
                                             newEdges.append(edge)
                     else:
                         print("rule not supported: " + str(rule[]))

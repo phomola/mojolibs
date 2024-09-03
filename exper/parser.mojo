@@ -10,32 +10,51 @@ fn main():
         print("expecting two arguments: <grammar file> <chart file>", file=stderr)
         exit(1)
     var grammar_file = args[1]
-    # var chart_file = args[2]
+    var chart_file = args[2]
     try:
         var p = Path(grammar_file)
         if not p.exists():
             print("file not found:", grammar_file, file=stderr)
             exit(1)
-        var grammar = parse_grammar(p.read_text())
+        var grammar = get_grammar(p.read_text())
         print(grammar)
-        # try:
-        #     var p = Path(chart_file)
-        #     if not p.exists():
-        #         print("file not found:", chart_file, file=stderr)
-        #         exit(1)
-        #     var chart = parse_chart(p.read_text())
-        #     print(chart)
-        # except e:
-        #     print("failed to parse the chart:", str(e), file=stderr)
-        #     exit(1)
+        p = Path(chart_file)
+        if not p.exists():
+            print("file not found:", chart_file, file=stderr)
+            exit(1)
+        var chart = parse_chart(p.read_text())
+        print(chart)
+        chart.parse(grammar)
+        print(chart)
     except e:
-        print("failed to parse the grammar:", str(e), file=stderr)
+        print("unexpected error:", e, file=stderr)
+        exit(1)        
+
+fn get_grammar(code: String) -> Grammar:
+    try:
+        return parse_grammar(code)
+    except e:
+        print("failed to parse grammar:", e, file=stderr)
         exit(1)
+        return Grammar(List[Rule]()) # needed to placate the compiler
+
+fn get_chart(code: String) -> Chart:
+    try:
+        return parse_chart(code)
+    except e:
+        print("failed to parse chart:", e, file=stderr)
+        exit(1)
+        return Chart() # needed to placate the compiler
 
 fn parse_grammar(input: String) raises -> Grammar:
     var tokens = tokenise(input, word_chars="_'")
     var i = 0
     return _parse_grammar(tokens, i)
+
+fn parse_chart(input: String) raises -> Chart:
+    var tokens = tokenise(input, word_chars="_'")
+    var i = 0
+    return _parse_chart(tokens, i)
 
 fn _parse_grammar(tokens: List[Token], inout i: Int) raises -> Grammar:
     var t = tokens[i]
@@ -61,7 +80,6 @@ fn _parse_rule(tokens: List[Token], inout i: Int) raises -> Rule:
     while True:
         i += 1
         t = tokens[i]
-        print("token:", t)
         if t.form == ".":
             i += 1
             fn sameAvm(avms: List[AVM]) -> Optional[AVM]:
@@ -70,6 +88,52 @@ fn _parse_rule(tokens: List[Token], inout i: Int) raises -> Rule:
         if t.type != word:
             raise Error("expected identifier at " + str(t.line) + ":" + str(t.column))
         rhs.append(t.form)
+
+fn _parse_chart(tokens: List[Token], inout i: Int) raises -> Chart:
+    var t = tokens[i]
+    var chart = Chart()
+    while t.type != eof:
+        var edge = _parse_edge(tokens, i)
+        chart.add(edge)
+        t = tokens[i]
+    return chart
+
+fn _parse_edge(tokens: List[Token], inout i: Int) raises -> Edge:
+    var t = tokens[i]
+    if t.type == eof:
+        raise Error("unexpected EOF")
+    if t.form != "-":
+        raise Error("expected '-' at " + str(t.line) + ":" + str(t.column))
+    i += 1
+    t = tokens[i]
+    if t.type != number:
+        raise Error("expected number at " + str(t.line) + ":" + str(t.column))
+    var start = atol(t.form)
+    i += 1
+    t = tokens[i]
+    if t.form != "-":
+        raise Error("expected '-' at " + str(t.line) + ":" + str(t.column))
+    i += 1
+    t = tokens[i]
+    if t.type != word:
+        raise Error("expected identifier at " + str(t.line) + ":" + str(t.column))
+    var cat = t.form
+    i += 1
+    t = tokens[i]
+    if t.form != "-":
+        raise Error("expected '-' at " + str(t.line) + ":" + str(t.column))
+    i += 1
+    t = tokens[i]
+    if t.type != number:
+        raise Error("expected number at " + str(t.line) + ":" + str(t.column))
+    var end = atol(t.form)
+    i += 1
+    t = tokens[i]
+    if t.form != "-":
+        raise Error("expected '-' at " + str(t.line) + ":" + str(t.column))
+    i += 1
+    t = tokens[i]
+    return Edge(start, end, cat, AVM(List[AVP]()), 0, List[String]())
 
 # fn example_english():
 #     var chart = Chart()
