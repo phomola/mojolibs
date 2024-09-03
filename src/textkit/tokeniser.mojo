@@ -52,7 +52,13 @@ fn is_alpha(c: UInt8) -> Bool:
 fn is_number(c: UInt8) -> Bool:
     return c >= zero and c <= nine
 
-fn tokenise(text: String, keep_eol: Bool = False) -> List[Token]:
+fn contains_char(list: List[UInt8], char: UInt8) -> Bool:
+    for el in list:
+        if el[] == char:
+            return True
+    return False
+
+fn tokenise(text: String, keep_eol: Bool = False, word_chars: String = "") -> List[Token]:
     var tokens = List[Token]()
     var i = 0
     var line = 1
@@ -64,6 +70,7 @@ fn tokenise(text: String, keep_eol: Bool = False) -> List[Token]:
     var esc = False
     var has_esc = False
     var bytes = text.as_bytes()
+    var word_chars_bytes = word_chars.as_bytes()
     while True:
         if state == 0:
             while i < len(bytes):
@@ -82,7 +89,7 @@ fn tokenise(text: String, keep_eol: Bool = False) -> List[Token]:
             break
         var r = bytes[i]
         if state == word:
-            if is_alpha(r) or is_number(r):
+            if is_alpha(r) or is_number(r) or contains_char(word_chars_bytes, r): # `in` doesn't work here
                 i += 1
                 col += 1
             else:
@@ -115,7 +122,7 @@ fn tokenise(text: String, keep_eol: Bool = False) -> List[Token]:
                     esc = False
                 i += 1
         else:
-            if is_alpha(r):
+            if is_alpha(r) or contains_char(word_chars_bytes, r):
                 state = word
                 start = i
                 i += 1
