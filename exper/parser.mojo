@@ -125,12 +125,9 @@ struct Annotation:
     var value: String
 
     fn get_avm(self, value: Variant[String, AVM]) -> AVM:
-        var avm = AVM(Dict[String, Variant[String, AVM]]())
-        avm.features[self.path[len(self.path)-1]] = value
+        var avm = AVM(AVP(self.path[len(self.path)-1], value))
         for i in range(len(self.path)-2, -1, -1):
-            var avm2 = AVM(Dict[String, Variant[String, AVM]]())
-            avm2.features[self.path[i]] = avm
-            avm = avm2
+            avm = AVM(AVP(self.path[i], avm))
         return avm
 
 fn _parse_annotations(tokens: List[Token], inout i: Int, idx: Int) raises -> List[Annotation]:
