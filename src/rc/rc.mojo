@@ -1,15 +1,10 @@
-from os import Atomic
-
 struct PointerCount[T: CollectionElement]:
     var val: T
-    var count: Atomic[DType.int64]
+    var count: Int
 
     fn __init__(inout self, val: T):
         self.val = val
         self.count = 1
-
-    # fn __del__(owned self):
-    #     print("RC storage destruction")
 
 struct RC[T: CollectionElement]:
     var pc: UnsafePointer[PointerCount[T]]
@@ -27,13 +22,14 @@ struct RC[T: CollectionElement]:
         self.pc = ex.pc
         
     fn __del__(owned self):
-        var old_count = self.pc[].count.fetch_sub(1)
+        var old_count = self.pc[].count
+        self.pc[].count -= 1
         if old_count == 1:
             destroy_pointee(self.pc)
             self.pc.free()
     
     fn ref_count(self) -> Int64:
-        return self.pc[].count.load()
+        return self.pc[].count
 
     fn __getitem__(self) -> T:
         return self.pc[].val
