@@ -14,11 +14,11 @@ struct RC[T: CollectionElement]:
         self.pc[].val = val
         self.pc[].count = 1
     
-    fn __copyinit__(inout self, ex: RC[T]):
+    fn __copyinit__(inout self, ex: Self):
         self.pc = ex.pc
         self.pc[].count += 1
         
-    fn __moveinit__(inout self, owned ex: RC[T]):
+    fn __moveinit__(inout self, owned ex: Self):
         self.pc = ex.pc
         
     fn __del__(owned self):
