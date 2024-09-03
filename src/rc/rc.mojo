@@ -1,4 +1,4 @@
-struct PointerCount[T: CollectionElement]:
+struct PointerCount[T: Movable]:
     var val: T
     var count: Int
 
@@ -13,7 +13,7 @@ struct PointerCount[T: CollectionElement]:
         self.count -= 1
         return self.count == 0
 
-struct RC[T: CollectionElement]:
+struct RC[T: Movable]:
     var pc: UnsafePointer[PointerCount[T]]
 
     fn __init__(inout self, owned val: T):
