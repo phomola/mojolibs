@@ -9,7 +9,7 @@ struct Edge(Stringable):
     var category: String
     var avm: AVM
     var level: Int
-    var children: List[String]
+    var children: List[UnsafePointer[Edge]]
 
     # fn __init__(inout self, start: Int, end: Int, category: String, avm: AVM, level: Int, children: List[String]):
     #     self.start = start
@@ -48,7 +48,7 @@ struct Edge(Stringable):
                     first = False
                 else:
                     s += ","
-                s += el[]
+                s += el[][].tree()
             s += ")"
         return s
 
@@ -116,7 +116,7 @@ struct Chart(Stringable):
                                 var avm_opt = rule[].avmfn(List(edge1[].avm))
                                 if avm_opt:
                                     var avm = avm_opt.value()
-                                    var edge = Edge(edge1[].start, edge1[].end, rule[].lhs, avm[], level + 1, List(edge1[].tree()))
+                                    var edge = Edge(edge1[].start, edge1[].end, rule[].lhs, avm[], level + 1, List(UnsafePointer.address_of(edge1[])))
                                     newEdges.append(edge)
                     elif rule[].rhs.size == 2:
                         var edges_opt = self.edges.get(edge1[].end)
@@ -127,7 +127,7 @@ struct Chart(Stringable):
                                         var avm_opt = rule[].avmfn(List(edge1[].avm, edge2[].avm))
                                         if avm_opt:
                                             var avm = avm_opt.value()
-                                            var edge = Edge(edge1[].start, edge2[].end, rule[].lhs, avm[], level + 1, List(edge1[].tree(), edge2[].tree()))
+                                            var edge = Edge(edge1[].start, edge2[].end, rule[].lhs, avm[], level + 1, List(UnsafePointer.address_of(edge1[]), UnsafePointer.address_of(edge2[])))
                                             newEdges.append(edge)
                     else:
                         print("rule not supported: " + str(rule[]))

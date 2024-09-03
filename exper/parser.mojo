@@ -133,7 +133,7 @@ fn _parse_edge(tokens: List[Token], inout i: Int) raises -> Edge:
         raise Error("expected '-' at " + str(t.line) + ":" + str(t.column))
     i += 1
     t = tokens[i]
-    return Edge(start, end, cat, AVM(List[AVP]()), 0, List[String]())
+    return Edge(start, end, cat, AVM(List[AVP]()), 0, List[UnsafePointer[Edge]]())
 
 # fn example_english():
 #     var chart = Chart()
