@@ -2,29 +2,34 @@ struct PointerCount[T: CollectionElement]:
     var val: T
     var count: Int
 
-    fn __init__(inout self, val: T):
-        self.val = val
+    fn __init__(inout self, owned val: T):
+        self.val = val^
         self.count = 1
+
+    fn retain(inout self):
+        self.count += 1
+
+    fn release(inout self) -> Bool:
+        self.count -= 1
+        return self.count == 0
 
 struct RC[T: CollectionElement]:
     var pc: UnsafePointer[PointerCount[T]]
 
-    fn __init__(inout self, val: T):
+    fn __init__(inout self, owned val: T):
         self.pc = UnsafePointer[PointerCount[T]].alloc(1)
-        self.pc[].val = val
+        self.pc[].val = val^
         self.pc[].count = 1
     
     fn __copyinit__(inout self, ex: Self):
         self.pc = ex.pc
-        self.pc[].count += 1
+        self.pc[].retain()
         
     fn __moveinit__(inout self, owned ex: Self):
         self.pc = ex.pc
         
     fn __del__(owned self):
-        var old_count = self.pc[].count
-        self.pc[].count -= 1
-        if old_count == 1:
+        if self.pc[].release():
             destroy_pointee(self.pc)
             self.pc.free()
     
