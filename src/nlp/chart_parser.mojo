@@ -1,6 +1,6 @@
 from utils import Variant
 from collections import List, Dict, Optional
-from nlp import AVM
+from nlp.avm import AVM
 
 @value
 struct Edge(Stringable):

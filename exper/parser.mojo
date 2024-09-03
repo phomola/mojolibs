@@ -1,4 +1,5 @@
-from nlp import AVM, AVP, Chart, Edge, Grammar, Rule
+from nlp.avm import AVM, AVP
+from nlp.chart_parser import Chart, Edge, Grammar, Rule
 
 fn example_english():
     var chart = Chart()
