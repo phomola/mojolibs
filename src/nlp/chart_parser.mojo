@@ -12,30 +12,6 @@ struct Edge(Stringable):
     var level: Int
     var children: List[RC[Edge]]
 
-    # fn __init__(inout self, start: Int, end: Int, category: String, avm: AVM, level: Int, children: List[String]):
-    #     self.start = start
-    #     self.end = end
-    #     self.category = category
-    #     self.avm = avm
-    #     self.level = level
-    #     self.children = children
-
-    # fn __copyinit__(inout self, edge: Edge):
-    #     self.start = edge.start
-    #     self.end = edge.end
-    #     self.category = edge.category
-    #     self.avm = edge.avm
-    #     self.level = edge.level
-    #     self.children = edge.children
-
-    # fn __moveinit__(inout self, owned edge: Edge):
-    #     self.start = edge.start
-    #     self.end = edge.end
-    #     self.category = edge.category^
-    #     self.avm = edge.avm^
-    #     self.level = edge.level
-    #     self.children = edge.children^
-
     fn __str__(self) -> String:
         return "-" + str(self.start) + "- " + self.tree() + " " + str(self.avm) + " -" + str(self.end) + "-"
 
