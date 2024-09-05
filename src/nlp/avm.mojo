@@ -66,5 +66,5 @@ struct AVM(Stringable):
             var key = it[].key
             if not key in avm1.features:
                 fs[key] = it[].value
-        return Optional(AVM(fs))
+        return AVM(fs)
 
