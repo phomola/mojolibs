@@ -17,13 +17,13 @@ fn main():
         if not p.exists():
             print("file not found:", grammar_file, file=stderr)
             exit(1)
-        var grammar = get_grammar(p.read_text())
+        var grammar = get_grammar(p.read_bytes())
         print(grammar)
         p = Path(chart_file)
         if not p.exists():
             print("file not found:", chart_file, file=stderr)
             exit(1)
-        var chart = parse_chart(p.read_text())
+        var chart = parse_chart(p.read_bytes())
         print(chart)
         chart.parse(grammar)
         print(chart)
@@ -31,7 +31,7 @@ fn main():
         print("unexpected error:", e, file=stderr)
         exit(1)        
 
-fn get_grammar(code: String) -> Grammar:
+fn get_grammar(code: List[UInt8]) -> Grammar:
     try:
         return parse_grammar(code)
     except e:
@@ -39,7 +39,7 @@ fn get_grammar(code: String) -> Grammar:
         exit(1)
         return Grammar(List[Rule]()) # needed to placate the compiler
 
-fn get_chart(code: String) -> Chart:
+fn get_chart(code: List[UInt8]) -> Chart:
     try:
         return parse_chart(code)
     except e:
