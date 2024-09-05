@@ -47,12 +47,12 @@ fn get_chart(code: List[UInt8]) -> Chart:
         exit(1)
         return Chart() # needed to placate the compiler
 
-fn parse_grammar(input: String) raises -> Grammar:
+fn parse_grammar(input: List[UInt8]) raises -> Grammar:
     var tokens = tokenise(input, word_chars="_'")
     var i = 0
     return _parse_grammar(tokens, i)
 
-fn parse_chart(input: String) raises -> Chart:
+fn parse_chart(input: List[UInt8]) raises -> Chart:
     var tokens = tokenise(input, word_chars="_'")
     var i = 0
     return _parse_chart(tokens, i)
