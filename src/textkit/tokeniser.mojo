@@ -1,5 +1,6 @@
 from utils import Variant
 from collections import List, Dict, Optional
+from textkit.utils import string_from_bytes
 
 alias word   = 1
 alias number = 2
@@ -59,6 +60,9 @@ fn contains_char(list: List[UInt8], char: UInt8) -> Bool:
     return False
 
 fn tokenise(text: String, keep_eol: Bool = False, word_chars: String = "") -> List[Token]:
+    return tokenise(text.as_bytes(), keep_eol, word_chars)
+
+fn tokenise(text: List[UInt8], keep_eol: Bool = False, word_chars: String = "") -> List[Token]:
     var tokens = List[Token]()
     var i = 0
     var line = 1
@@ -69,12 +73,11 @@ fn tokenise(text: String, keep_eol: Bool = False, word_chars: String = "") -> Li
     var start = 0
     var esc = False
     var has_esc = False
-    var bytes = text.as_bytes()
     var word_chars_bytes = word_chars.as_bytes()
     while True:
         if state == 0:
-            while i < len(bytes):
-                var r = bytes[i]
+            while i < len(text):
+                var r = text[i]
                 if r == newline:
                     if keep_eol:
                         tokens.append(Token(eol, "\n", line, col))
@@ -85,26 +88,26 @@ fn tokenise(text: String, keep_eol: Bool = False, word_chars: String = "") -> Li
                 else:
                     col += 1
                 i += 1
-        if i == len(bytes):
+        if i == len(text):
             break
-        var r = bytes[i]
+        var r = text[i]
         if state == word:
             if is_alpha(r) or is_number(r) or contains_char(word_chars_bytes, r): # `in` doesn't work here
                 i += 1
                 col += 1
             else:
-                tokens.append(Token(word, text[start:i], line1, col1))
+                tokens.append(Token(word, string_from_bytes(text[start:i]), line1, col1))
                 state = 0
         elif state == number:
             if is_number(r):
                 i += 1
                 col += 1
             else:
-                tokens.append(Token(number, text[start:i], line1, col1))
+                tokens.append(Token(number, string_from_bytes(text[start:i]), line1, col1))
                 state = 0
         elif state == string:
             if r == quote and not esc:
-                tokens.append(Token(string, text[start:i] if not has_esc else unquote(text[start:i]), line1, col1))
+                tokens.append(Token(string, string_from_bytes(text[start:i]) if not has_esc else unquote(string_from_bytes(text[start:i])), line1, col1))
                 state = 0
                 col += 1
                 i += 1
@@ -145,15 +148,15 @@ fn tokenise(text: String, keep_eol: Bool = False, word_chars: String = "") -> Li
                 col1 = col
                 col += 1
             else:
-                tokens.append(Token(symbol, text[i], line, col))
+                tokens.append(Token(symbol, string_from_bytes(text[i]), line, col))
                 i += 1
                 col += 1
     if state == word:
-        tokens.append(Token(word, text[start:i], line1, col1))
+        tokens.append(Token(word, string_from_bytes(text[start:i]), line1, col1))
     elif state == number:
-        tokens.append(Token(number, text[start:i], line1, col1))
+        tokens.append(Token(number, string_from_bytes(text[start:i]), line1, col1))
     elif state == string:
-        tokens.append(Token(string, text[start:i] if not has_esc else unquote(text[start:i]), line1, col1))
+        tokens.append(Token(string, string_from_bytes(text[start:i]) if not has_esc else unquote(string_from_bytes(text[start:i])), line1, col1))
     tokens.append(Token(eof, "", line, col))
     return tokens
 
