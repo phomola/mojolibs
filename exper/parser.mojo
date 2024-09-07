@@ -23,29 +23,25 @@ fn main():
         if not p.exists():
             print("file not found:", chart_file, file=stderr)
             exit(1)
-        var chart = parse_chart(p.read_bytes())
+        var chart = get_chart(p.read_bytes())
         print(chart)
         chart.parse(grammar)
         print(chart)
     except e:
-        print("unexpected error:", e, file=stderr)
+        print(e, file=stderr)
         exit(1)        
 
-fn get_grammar(code: List[UInt8]) -> Grammar:
+fn get_grammar(code: List[UInt8]) raises -> Grammar:
     try:
         return parse_grammar(code)
     except e:
-        print("failed to parse grammar:", e, file=stderr)
-        exit(1)
-        return Grammar(List[Rule]()) # needed to placate the compiler
+        raise Error("failed to parse grammar: " + str(e))
 
-fn get_chart(code: List[UInt8]) -> Chart:
+fn get_chart(code: List[UInt8]) raises -> Chart:
     try:
         return parse_chart(code)
     except e:
-        print("failed to parse chart:", e, file=stderr)
-        exit(1)
-        return Chart() # needed to placate the compiler
+        raise Error("failed to parse chart: " + str(e))
 
 fn parse_grammar(input: List[UInt8]) raises -> Grammar:
     var tokens = tokenise(input, word_chars="_'")
