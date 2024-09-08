@@ -9,8 +9,8 @@ struct AVP:
 struct AVM(Stringable):
     var features: Dict[String, Variant[String, AVM]]
 
-    fn __init__(inout self, features: Dict[String, Variant[String, AVM]]):
-        self.features = features
+    fn __init__(inout self, owned features: Dict[String, Variant[String, AVM]]):
+        self.features = features^
 
     fn __init__(inout self, pairs: List[AVP]):
         self.features = Dict[String, Variant[String, AVM]]()
