@@ -218,7 +218,7 @@ fn _parse_edge(tokens: List[Token], inout i: Int) raises -> Edge:
         raise Error("expected '-' at " + str(t.line) + ":" + str(t.column))
     i += 1
     t = tokens[i]
-    return Edge(start, end, cat, avm, 0, List[RC[Edge]]())
+    return Edge(start, end, cat, avm, 0, False, List[RC[Edge]]())
 
 fn _parse_avm(tokens: List[Token], inout i: Int) raises -> AVM:
     var t = tokens[i]
