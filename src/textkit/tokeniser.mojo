@@ -60,9 +60,9 @@ fn contains_char(list: List[UInt8], char: UInt8) -> Bool:
     return False
 
 fn tokenise(text: String, keep_eol: Bool = False, word_chars: String = "") -> List[Token]:
-    return tokenise_bytes(bytes_from_string(text), keep_eol, word_chars)
+    return tokenise(bytes_from_string(text), keep_eol, word_chars)
 
-fn tokenise_bytes(text: List[UInt8], keep_eol: Bool = False, word_chars: String = "") -> List[Token]:
+fn tokenise(text: List[UInt8], keep_eol: Bool = False, word_chars: String = "") -> List[Token]:
     var tokens = List[Token]()
     var i = 0
     var line = 1

@@ -4,6 +4,8 @@ from textkit import tokenise, Token, word, symbol, string, number, eol, eof
 from sys import argv, stderr, exit
 from pathlib import Path
 from rc import RC
+from utils import Variant
+from collections import List, Dict, Optional
 
 fn main():
     var args = argv()
@@ -18,15 +20,15 @@ fn main():
             print("file not found:", grammar_file, file=stderr)
             exit(1)
         var grammar = get_grammar(p.read_bytes())
-        print(grammar)
+        print(str(grammar))
         p = Path(chart_file)
         if not p.exists():
             print("file not found:", chart_file, file=stderr)
             exit(1)
         var chart = get_chart(p.read_bytes())
-        print(chart)
+        print(str(chart))
         chart.parse(grammar)
-        print(chart)
+        print(str(chart))
     except e:
         print(e, file=stderr)
         exit(1)        
@@ -87,20 +89,20 @@ fn _parse_rule(tokens: List[Token], inout i: Int) raises -> Rule:
                     if len(annotation[].path) == 0:
                         var avm_opt = avm.unify(avms[annotation[].idx])
                         if avm_opt:
-                            avm = avm_opt.value()[]
+                            avm = avm_opt.value()
                         else:
                             return None
                     else:
                         if annotation[].value == "":
                             var avm_opt = avm.unify(annotation[].get_avm(avms[annotation[].idx]))
                             if avm_opt:
-                                avm = avm_opt.value()[]
+                                avm = avm_opt.value()
                             else:
                                 return None
                         else:
                             var avm_opt = avm.unify(annotation[].get_avm(annotation[].value))
                             if avm_opt:
-                                avm = avm_opt.value()[]
+                                avm = avm_opt.value()
                             else:
                                 return None
                 return avm

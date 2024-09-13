@@ -7,9 +7,9 @@ alias newline = ord("\n")
 alias quote = ord("\"")
 
 fn parse_csv(input: String) -> List[List[String]]:
-    return parse_csv_bytes(bytes_from_string(input))
+    return parse_csv(bytes_from_string(input))
 
-fn parse_csv_bytes(input: List[UInt8]) -> List[List[String]]:
+fn parse_csv(input: List[UInt8]) -> List[List[String]]:
     var rows = List[List[String]]()
     var i = 0
     var quoted = False

@@ -74,7 +74,7 @@ struct Chart(Stringable):
         var edges_opt = self.edges.get(edge[].start)
         if edges_opt:
             var edges = edges_opt.value()
-            edges[].append(edge)
+            edges.append(edge)
             self.edges[edge[].start] = edges # this shall be optimised in a future Mojo release
         else:
             self.edges[edge[].start] = List(edge)
@@ -99,12 +99,12 @@ struct Chart(Stringable):
                                 if avm_opt:
                                     edge1[].mutref().used = True
                                     var avm = avm_opt.value()
-                                    var edge = Edge(edge1[][].start, edge1[][].end, rule[].lhs, avm[], level + 1, False, List(edge1[]))
+                                    var edge = Edge(edge1[][].start, edge1[][].end, rule[].lhs, avm, level + 1, False, List(edge1[]))
                                     newEdges.append(edge)
                     elif rule[].rhs.size == 2:
                         var edges_opt = self.edges.get(edge1[][].end)
                         if edges_opt:
-                            for edge2 in edges_opt.value()[]:
+                            for edge2 in edges_opt.value():
                                 if edge1[][].level == level or edge2[][].level == level:
                                     if edge1[][].category == rule[].rhs[0] and edge2[][].category == rule[].rhs[1]:
                                         var avm_opt = rule[].avmfn(List(edge1[][].avm, edge2[][].avm))
@@ -112,7 +112,7 @@ struct Chart(Stringable):
                                             edge1[].mutref().used = True
                                             edge2[].mutref().used = True
                                             var avm = avm_opt.value()
-                                            var edge = Edge(edge1[][].start, edge2[][].end, rule[].lhs, avm[], level + 1, False, List(edge1[], edge2[]))
+                                            var edge = Edge(edge1[][].start, edge2[][].end, rule[].lhs, avm, level + 1, False, List(edge1[], edge2[]))
                                             newEdges.append(edge)
                     else:
                         print("rule not supported: " + str(rule[]))
