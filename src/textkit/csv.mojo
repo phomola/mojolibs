@@ -1,15 +1,15 @@
 from utils import Variant
 from collections import List, Dict, Optional
-from textkit.utils import string_from_bytes
+from textkit.utils import string_from_bytes, bytes_from_string
 
 alias comma = ord(",")
 alias newline = ord("\n")
 alias quote = ord("\"")
 
 fn parse_csv(input: String) -> List[List[String]]:
-    return parse_csv(input.as_bytes())
+    return parse_csv_bytes(bytes_from_string(input))
 
-fn parse_csv(input: List[UInt8]) -> List[List[String]]:
+fn parse_csv_bytes(input: List[UInt8]) -> List[List[String]]:
     var rows = List[List[String]]()
     var i = 0
     var quoted = False

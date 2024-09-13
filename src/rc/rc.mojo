@@ -29,7 +29,7 @@ struct RC[T: Movable]:
         
     fn __del__(owned self):
         if self.pc[].release():
-            destroy_pointee(self.pc)
+            self.pc.destroy_pointee()
             self.pc.free()
     
     fn refcount(self) -> Int64:

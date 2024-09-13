@@ -1,6 +1,6 @@
 from utils import Variant
 from collections import List, Dict, Optional
-from textkit.utils import string_from_bytes
+from textkit.utils import string_from_bytes, bytes_from_string
 
 alias word   = 1
 alias number = 2
@@ -60,9 +60,9 @@ fn contains_char(list: List[UInt8], char: UInt8) -> Bool:
     return False
 
 fn tokenise(text: String, keep_eol: Bool = False, word_chars: String = "") -> List[Token]:
-    return tokenise(text.as_bytes(), keep_eol, word_chars)
+    return tokenise_bytes(bytes_from_string(text), keep_eol, word_chars)
 
-fn tokenise(text: List[UInt8], keep_eol: Bool = False, word_chars: String = "") -> List[Token]:
+fn tokenise_bytes(text: List[UInt8], keep_eol: Bool = False, word_chars: String = "") -> List[Token]:
     var tokens = List[Token]()
     var i = 0
     var line = 1
@@ -73,7 +73,7 @@ fn tokenise(text: List[UInt8], keep_eol: Bool = False, word_chars: String = "") 
     var start = 0
     var esc = False
     var has_esc = False
-    var word_chars_bytes = word_chars.as_bytes()
+    var word_chars_bytes = bytes_from_string(word_chars)
     while True:
         if state == 0:
             while i < len(text):
