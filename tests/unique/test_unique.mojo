@@ -1,7 +1,8 @@
 from testing import assert_equal, assert_true, assert_false
-from unique import InternedString
+from unique import InternedString, init_global_vars
 
 fn test_interned_string() raises:
+    init_global_vars()
     var s1 = InternedString("a")
     var s2 = InternedString("b")
     var s3 = InternedString("a")
