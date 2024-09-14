@@ -69,7 +69,7 @@ struct GoApi:
     
     fn get_body(self, ctx: HttpCtx) -> List[UInt8]:
         var data = self.golib_get_body(ctx)
-        var size: Int = int(data.len)
+        var size = int(data.len)
         if size == 0:
             return List[UInt8]()
         var bytes = UnsafePointer[UInt8].alloc(size)
