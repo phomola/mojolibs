@@ -1,6 +1,7 @@
 from collections import List
 from sys import ffi, external_call
 from memory import memcpy
+from os import getenv
 from textkit import parse_json_object
 
 var goapi = GoApi()
@@ -83,11 +84,12 @@ struct GoApi:
     fn write_response(self, ctx: HttpCtx, data: List[UInt8]):
         self.golib_write_response(ctx, get_list_data(data), len(data))
 
-fn main():
+fn main() raises:
     goapi.register_handler("GET /handler1", handler1)
     goapi.register_handler("GET /handler2", handler2)
     goapi.register_handler("POST /handler3", handler3)
-    goapi.listen_and_serve(8080)
+    var port = atol(getenv("PORT"))
+    goapi.listen_and_serve(port)
 
 fn string_from_bytes(b: List[UInt8]) -> String:
     return str(StringRef(b.data, len(b)))
