@@ -1,6 +1,7 @@
 from collections import List
 from sys import ffi, external_call
 from memory import memcpy
+from textkit import parse_json_object
 
 var goapi = GoApi()
 
@@ -24,8 +25,17 @@ fn handler3(ctx: HttpCtx):
     print("mojo: handler 3")
     goapi.check(ctx)
     var body = goapi.get_body(ctx)
-    goapi.write_response(ctx, "Hello from Mojo!\n")
-    goapi.write_response(ctx, string_from_bytes(body))
+    try:
+        var obj = parse_json_object(body)
+        var val_opt = obj.dict.get("name")
+        if not val_opt:
+            raise Error("no 'name' key")
+        var val = val_opt.value()
+        if not val.isa[String]():
+            raise Error("'name' value not a string")
+        goapi.write_response(ctx, "Hello, " + val[String] + "!")
+    except e:
+        goapi.write_response(ctx, "error: " + str(e))
     goapi.write_response(ctx, "\n")
 
 struct GoApi:
@@ -59,6 +69,8 @@ struct GoApi:
     fn get_body(self, ctx: HttpCtx) -> List[UInt8]:
         var data = self.golib_get_body(ctx)
         var size: Int = int(data.len)
+        if size == 0:
+            return List[UInt8]()
         var bytes = UnsafePointer[UInt8].alloc(size)
         memcpy(bytes, data.ptr, size)
         self.golib_free(data.ptr)
