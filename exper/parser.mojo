@@ -72,9 +72,13 @@ fn _parse_rule(tokens: List[Token], inout i: Int) raises -> Rule:
         raise Error("expected identifier at " + str(t.line) + ":" + str(t.column))
     var lhs = t.form
     i += 1
+    print("# 1", i, len(tokens))
     t = tokens[i]
+    print("# 2", t.form)
     if t.form != ">":
+        print("# 3")
         raise Error("expected '>' at " + str(t.line) + ":" + str(t.column))
+    print("# 4")
     var rhs = List[String]()
     var idx = 0
     i += 1
