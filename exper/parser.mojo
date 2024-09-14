@@ -89,20 +89,20 @@ fn _parse_rule(tokens: List[Token], inout i: Int) raises -> Rule:
                     if len(annotation[].path) == 0:
                         var avm_opt = avm.unify(avms[annotation[].idx])
                         if avm_opt:
-                            avm = avm_opt.value()
+                            avm = avm_opt.value()[]
                         else:
                             return None
                     else:
                         if annotation[].value == "":
                             var avm_opt = avm.unify(annotation[].get_avm(avms[annotation[].idx]))
                             if avm_opt:
-                                avm = avm_opt.value()
+                                avm = avm_opt.value()[]
                             else:
                                 return None
                         else:
                             var avm_opt = avm.unify(annotation[].get_avm(annotation[].value))
                             if avm_opt:
-                                avm = avm_opt.value()
+                                avm = avm_opt.value()[]
                             else:
                                 return None
                 return avm

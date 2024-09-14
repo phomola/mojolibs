@@ -42,7 +42,7 @@ struct AVM(Stringable):
             var val1 = it[].value
             var val2_opt = avm2.features.get(key)
             if val2_opt:
-                var val2 = val2_opt.value()
+                var val2 = val2_opt.value()[]
                 if val1.isa[String]() and val2.isa[String]():
                     var s1 = val1[String]
                     var s2 = val2[String]
@@ -55,7 +55,7 @@ struct AVM(Stringable):
                     var avm2 = val2[AVM]
                     var avm = avm1.unify(avm2)
                     if avm:
-                        fs[key] = avm.value()
+                        fs[key] = avm.value()[]
                     else:
                         return None
                 else:

@@ -16,7 +16,7 @@ struct InternedString(EqualityComparable):
     fn __init__(inout self, val: String):
         var so = strings.get(val)
         if so:
-            self.ptr = so.value().ptr
+            self.ptr = so.value()[].ptr
         else:
             self.ptr = RC(val)
             strings[val] = self.ptr
