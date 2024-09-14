@@ -75,7 +75,7 @@ struct GoApi:
         var bytes = UnsafePointer[UInt8].alloc(size)
         memcpy(bytes, data.ptr, size)
         self.golib_free(data.ptr)
-        var list = List[UInt8](unsafe_pointer=bytes, size=size, capacity=size)
+        var list = List(unsafe_pointer=bytes, size=size, capacity=size)
         return list
 
     fn write_response(self, ctx: HttpCtx, data: String):
