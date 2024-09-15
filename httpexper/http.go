@@ -15,7 +15,7 @@ import (
 
 typedef struct {
 	void* ptr;
-	uint64_t len;
+	int64_t len;
 } data;
 
 inline void c_invoke_callback(void* p, void* arg) {
@@ -55,7 +55,7 @@ func golib_get_body(hp unsafe.Pointer) C.data {
 	cb := C.CBytes(b)
 	return C.data{
 		ptr: cb,
-		len: C.uint64_t(len(b)),
+		len: C.int64_t(len(b)),
 	}
 }
 
@@ -80,7 +80,7 @@ func golib_register_handler(handler unsafe.Pointer, cpath *C.char) {
 }
 
 //export golib_listen_serve
-func golib_listen_serve(port C.int) {
+func golib_listen_serve(port C.int64_t) {
 	fmt.Println("listening on port", port)
 	if err := http.ListenAndServe(":"+strconv.Itoa(int(port)), mux); err != http.ErrServerClosed {
 		fmt.Fprintln(os.Stderr, err)
