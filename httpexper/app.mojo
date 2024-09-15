@@ -2,6 +2,7 @@ from collections import List
 from sys import ffi, external_call
 from memory import memcpy
 from os import getenv
+from sys import argv, stderr, exit
 from textkit import parse_json_object
 
 var goapi = GoApi()
@@ -40,7 +41,7 @@ fn handler3(ctx: HttpCtx):
     goapi.write_response(ctx, "\n")
 
 struct GoApi:
-    var golib_listen_and_serve: fn(Int) -> None
+    var golib_listen_and_serve: fn(Int64) -> None
     var golib_register_handler: fn(fn(HttpCtx) -> None, StringRef) -> None
     var golib_check: fn(HttpCtx) -> None
     var golib_get_body: fn(HttpCtx) -> Data
@@ -50,7 +51,7 @@ struct GoApi:
     fn __init__(inout self):
         var h = ffi.DLHandle("./libhttpsrv.dylib")
         print("lib handle:", h.handle)
-        self.golib_listen_and_serve = h.get_function[fn(Int) -> None]("golib_listen_serve")
+        self.golib_listen_and_serve = h.get_function[fn(Int64) -> None]("golib_listen_serve")
         self.golib_register_handler = h.get_function[fn(fn(HttpCtx) -> None, StringRef) -> None]("golib_register_handler")
         self.golib_check = h.get_function[fn(HttpCtx) -> None]("golib_check")
         self.golib_get_body = h.get_function[fn(HttpCtx) -> Data]("golib_get_body")
@@ -75,8 +76,7 @@ struct GoApi:
         var bytes = UnsafePointer[UInt8].alloc(size)
         memcpy(bytes, data.ptr, size)
         self.golib_free(data.ptr)
-        var list = List(unsafe_pointer=bytes, size=size, capacity=size)
-        return list
+        return List(unsafe_pointer=bytes, size=size, capacity=size)
 
     fn write_response(self, ctx: HttpCtx, data: String):
         self.write_response(ctx, bytes_from_string(data))
@@ -88,8 +88,12 @@ fn main() raises:
     goapi.register_handler("GET /handler1", handler1)
     goapi.register_handler("GET /handler2", handler2)
     goapi.register_handler("POST /handler3", handler3)
-    var port = atol(getenv("PORT"))
-    goapi.listen_and_serve(port)
+    try:
+        var port = atol(getenv("PORT"))
+        goapi.listen_and_serve(port)
+    except e:
+        print("error:", e, file=stderr)
+        exit(1)
 
 fn string_from_bytes(b: List[UInt8]) -> String:
     return str(StringRef(b.data, len(b)))
