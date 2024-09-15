@@ -84,7 +84,7 @@ struct GoApi:
     fn write_response(self, ctx: HttpCtx, data: List[UInt8]):
         self.golib_write_response(ctx, get_list_data(data), len(data))
 
-fn main() raises:
+fn main():
     goapi.register_handler("GET /handler1", handler1)
     goapi.register_handler("GET /handler2", handler2)
     goapi.register_handler("POST /handler3", handler3)
