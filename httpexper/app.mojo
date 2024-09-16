@@ -1,5 +1,4 @@
 from sys import stderr, exit
-from os import getenv
 from textkit import parse_json_object
 from http import http, HttpCtx, HttpRequest
 
@@ -7,11 +6,13 @@ fn handler1(ctx: HttpCtx):
     print("mojo: handler 1")
     var req = HttpRequest(ctx)
     req.check()
+    req.write_response("handler 1")
 
 fn handler2(ctx: HttpCtx):
     print("mojo: handler 2")
     var req = HttpRequest(ctx)
     req.check()
+    req.write_response("handler 2")
 
 fn handler3(ctx: HttpCtx):
     print("mojo: handler 3")
@@ -32,8 +33,7 @@ fn main():
     http.register_handler("GET /handler2", handler2)
     http.register_handler("POST /handler3", handler3)
     try:
-        var port = atol(getenv("PORT"))
-        http.listen_and_serve(port)
+        http.run()
     except e:
         print("error:", e, file=stderr)
         exit(1)
