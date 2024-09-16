@@ -53,6 +53,10 @@ struct GoApi:
     fn listen_and_serve(self, port: Int):
         self.golib_listen_and_serve(port)
 
+    fn run(self) raises:
+        var port = atol(getenv("PORT"))
+        self.listen_and_serve(port)
+
     fn register_handler(self, path: String, handler: fn(HttpCtx) -> None):
         self.golib_register_handler(handler, path._strref_dangerous())
         path._strref_keepalive()
