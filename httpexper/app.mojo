@@ -29,14 +29,10 @@ fn handler3(ctx: HttpCtx):
     var body = goapi.get_body(ctx)
     try:
         var obj = parse_json_object(body)
-        var val_opt = obj.dict.get("name")
-        if not val_opt:
-            raise Error("no 'name' key")
-        var val = val_opt.value()
-        if not val.isa[String]():
-            raise Error("'name' value not a string")
-        goapi.write_response(ctx, "Hello, " + val[String] + "!")
+        var name = obj.must_get_string("name")
+        goapi.write_response(ctx, "Hello, " + name + "!")
     except e:
+        goapi.write_header(ctx, 400)
         goapi.write_response(ctx, "error: " + str(e))
     goapi.write_response(ctx, "\n")
 
@@ -47,6 +43,7 @@ struct GoApi:
     var golib_get_body: fn(HttpCtx) -> Data
     var golib_free: fn(UnsafePointer[UInt8]) -> None
     var golib_write_response: fn(HttpCtx, UnsafePointer[UInt8], Int64) -> None
+    var golib_write_header: fn(HttpCtx, Int64) -> None
 
     fn __init__(inout self):
         var h = ffi.DLHandle("./libhttpsrv.dylib")
@@ -57,6 +54,7 @@ struct GoApi:
         self.golib_get_body = h.get_function[fn(HttpCtx) -> Data]("golib_get_body")
         self.golib_free = h.get_function[fn(UnsafePointer[UInt8]) -> None]("golib_free")
         self.golib_write_response = h.get_function[fn(HttpCtx, UnsafePointer[UInt8], Int64) -> None]("golib_write_response")
+        self.golib_write_header = h.get_function[fn(HttpCtx, Int64) -> None]("golib_write_header")
     
     fn listen_and_serve(self, port: Int):
         self.golib_listen_and_serve(port)
@@ -83,6 +81,9 @@ struct GoApi:
 
     fn write_response(self, ctx: HttpCtx, data: List[UInt8]):
         self.golib_write_response(ctx, get_list_data(data), len(data))
+
+    fn write_header(self, ctx: HttpCtx, status: Int):
+        self.golib_write_header(ctx, status)
 
 fn main():
     goapi.register_handler("GET /handler1", handler1)
