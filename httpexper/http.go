@@ -65,6 +65,12 @@ func golib_write_response(hp unsafe.Pointer, p unsafe.Pointer, size C.int64_t) {
 	d.rw.Write(C.GoBytes(p, C.int(size)))
 }
 
+//export golib_write_header
+func golib_write_header(hp unsafe.Pointer, status C.int64_t) {
+	d := (*cgo.Handle)(hp).Value().(reqData)
+	d.rw.WriteHeader(int(status))
+}
+
 //export golib_register_handler
 func golib_register_handler(handler unsafe.Pointer, cpath *C.char) {
 	path := C.GoString(cpath)
