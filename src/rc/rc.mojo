@@ -18,7 +18,7 @@ struct RC[T: Movable]:
 
     fn __init__(inout self, owned val: T):
         self.pc = UnsafePointer[PointerCount[T]].alloc(1)
-        __get_address_as_uninit_lvalue(self.pc.address) = PointerCount[T](val^)
+        __get_address_as_uninit_lvalue(self.pc.address) = PointerCount(val^)
     
     fn __copyinit__(inout self, ex: Self):
         self.pc = ex.pc
@@ -29,7 +29,7 @@ struct RC[T: Movable]:
         
     fn __del__(owned self):
         if self.pc[].release():
-            destroy_pointee(self.pc)
+            self.pc.destroy_pointee()
             self.pc.free()
     
     fn refcount(self) -> Int64:

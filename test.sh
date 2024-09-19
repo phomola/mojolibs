@@ -1,1 +1,1 @@
-mojo test -I src tests
+magic run mojo test -I src tests
