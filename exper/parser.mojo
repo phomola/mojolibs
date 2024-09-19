@@ -1,9 +1,8 @@
 from nlp.avm import AVM, AVP
-from nlp.chart_parser import Chart, Edge, Grammar, Rule
+from nlp.chart_parser import Chart, Edge, Grammar, Rule, Tree
 from textkit import tokenise, Token, word, symbol, string, number, eol, eof
 from sys import argv, stderr, exit
 from pathlib import Path
-from rc import RC
 from utils import Variant
 from collections import List, Dict, Optional
 
@@ -220,7 +219,7 @@ fn _parse_edge(tokens: List[Token], inout i: Int) raises -> Edge:
         raise Error("expected '-' at " + str(t.line) + ":" + str(t.column))
     i += 1
     t = tokens[i]
-    return Edge(start, end, cat, avm, 0, False, List[RC[Edge]]())
+    return Edge(start, end, cat, avm, 0, False, Tree(cat, None))
 
 fn _parse_avm(tokens: List[Token], inout i: Int) raises -> AVM:
     var t = tokens[i]
