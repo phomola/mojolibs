@@ -13,15 +13,14 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	_ "github.com/lib/pq"
 )
 
 var (
-	appCommands sync.Map
-	appPorts    sync.Map
+	//appCommands sync.Map
+	//appPorts    sync.Map
 	db          *sql.DB
 )
 
@@ -38,9 +37,44 @@ func build(ctx context.Context, id, dir, code string) error {
 		return err
 	}
 	binaryFile := "app_" + id
-	cmd := exec.CommandContext(ctx, "magic", "run", "mojo", "build", "-I", "../../src", "-I", "..", "-o", binaryFile, sourceFile)
+	cmd := exec.CommandContext(ctx, "magic", "run", "mojo", "build", "-I", "../../mojolibs/src", "-I", "..", "-o", binaryFile, sourceFile)
 	cmd.Dir = dir
 	var errSb strings.Builder
+	cmd.Stderr = &errSb
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("%w: %s", err, strings.TrimSpace(errSb.String()))
+	}
+	if err := os.Mkdir(dir + "_" + id, 0750); err != nil && !os.IsExist(err) {
+		return err
+	}
+	f, err = os.Create(dir + "_" + id + "/Dockerfile")
+	if err != nil {
+		return err
+	}
+	if _, err := f.WriteString(`# Mojoapp
+FROM ubuntu:latest
+WORKDIR /app
+COPY . .
+ENV HTTP_LIB=./libhttpsrv.so
+CMD ["./app_` + id + `"]
+`); err != nil {
+		return err
+	}
+	if err := f.Close(); err != nil {
+		return err
+	}
+	if err := copyFile("libhttpsrv.so", dir + "_" + id + "/libhttpsrv.so"); err != nil {
+		return err
+	}
+	if err := copyFile(dir + "/app_" + id, dir + "_" + id + "/app_" + id); err != nil {
+		return err
+	}
+	if err := os.Chmod(dir + "_" + id + "/app_" + id, 0755); err != nil {
+		return err
+	}
+	cmd = exec.CommandContext(ctx, "docker", "build", "-t", "mojoapps/" + id, ".")
+	cmd.Dir = dir + "_" + id
+	errSb.Reset()
 	cmd.Stderr = &errSb
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("%w: %s", err, strings.TrimSpace(errSb.String()))
@@ -48,8 +82,23 @@ func build(ctx context.Context, id, dir, code string) error {
 	return nil
 }
 
+func copyFile(src, dst string) error {
+	f1, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer f1.Close()
+	f2, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	defer f2.Close()
+	_, err = io.Copy(f2, f1)
+	return err
+}
+
 func run(id, dir string, port int, lib string) error {
-	if cmd, ok := appCommands.Load(id); ok {
+	/*if cmd, ok := appCommands.Load(id); ok {
 		cmd := cmd.(*exec.Cmd)
 		if err := cmd.Process.Kill(); err != nil {
 			slog.Error("kill failed", slog.String("id", id), slog.Any("error", err))
@@ -57,39 +106,67 @@ func run(id, dir string, port int, lib string) error {
 			slog.Info("app killed", slog.String("id", id))
 		}
 		appCommands.Delete(id)
+	}*/
+	cmd := exec.Command("docker", "kill", "mojoapp-" + id)
+	if err := cmd.Run(); err != nil {
+		slog.Info("docker kill failed")
 	}
-	binaryFile := "app_" + id
-	cmd := exec.Command("./" + binaryFile)
+	cmd = exec.Command("docker", "remove", "mojoapp-" + id)
+	if err := cmd.Run(); err != nil {
+		slog.Info("docker remove failed")
+	}
+	/*pid, err := pidof(binaryFile)
+	if err != nil {
+		return err
+	}
+	if pid != 0 {
+		cmd := exec.Command("kill", strconv.Itoa(pid))
+		if err := cmd.Run(); err != nil {
+			return err
+		}
+	}*/
+	cmd = exec.Command("docker", "run", "-dp", fmt.Sprintf("%d:%d", port, port), "-e", fmt.Sprintf("PORT=%d", port), "--name=mojoapp-" + id, "--memory=10m", "--cpus=0.1", "mojoapps/" + id)
+	var errSb strings.Builder
+        cmd.Stderr = &errSb
+	if err := cmd.Start(); err != nil {
+		slog.Info("docker run failed")
+	}
+	/*binaryFile := "app_" + id
+	cmd = exec.Command("./" + binaryFile)
 	cmd.Dir = dir
 	cmd.Env = []string{"PORT=" + strconv.Itoa(port), "HTTP_LIB=" + lib}
-	// var outSb strings.Builder
-	// cmd.Stdout = &outSb
-	// var errSb strings.Builder
-	// cmd.Stderr = &errSb
 	if err := cmd.Start(); err != nil {
 		return err
 	}
 	appCommands.Store(id, cmd)
-	appPorts.Store(id, port)
+	appPorts.Store(id, port)*/
 	go func() {
 		if err := cmd.Wait(); err != nil {
 			slog.Error("app wait failed", slog.String("id", id), slog.Any("error", err))
+			fmt.Println(errSb.String())
 		} else {
 			slog.Info("app exited", slog.String("id", id))
 		}
-		appCommands.Delete(id)
+		//appCommands.Delete(id)
 	}()
 	return nil
 }
 
-// func pidof(name string) (int, error) {
-// 	cmd := exec.Command("pgrep", name)
-// 	output, err := cmd.Output()
-// 	if err != nil {
-// 		return 0, err
-// 	}
-// 	return strconv.Atoi(strings.TrimSpace(string(output)))
-// }
+func pidof(name string) (int, error) {
+	cmd := exec.Command("pidof", name)
+	b, err := cmd.Output()
+	if err != nil {
+		var exitErr *exec.ExitError
+		if errors.As(err, &exitErr) {
+			if string(exitErr.Stderr) == "" {
+				return 0, nil
+			}
+		}
+		return 0, err
+	}
+	output := strings.TrimSpace(string(b))
+	return strconv.Atoi(output)
+}
 
 type buildAndRunRequest struct {
 	ID   string `json:"id"`
@@ -131,7 +208,7 @@ func buildAndRunHandler(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	slog.InfoContext(ctx, "app built", slog.String("id", r.ID))
-	if err := run(r.ID, "build", r.Port, "../libhttpsrv.dylib"); err != nil {
+	if err := run(r.ID, "build", r.Port, "../libhttpsrv.so"); err != nil {
 		json.NewEncoder(w).Encode(&buildAndRunResponse{
 			Success: false,
 			Info:    err.Error(),
@@ -245,3 +322,4 @@ func main() {
 // 		os.Exit(1)
 // 	}
 // }
+
