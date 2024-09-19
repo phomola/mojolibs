@@ -11,7 +11,6 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
-	"strconv"
 	"strings"
 	"time"
 
@@ -19,9 +18,7 @@ import (
 )
 
 var (
-	//appCommands sync.Map
-	//appPorts    sync.Map
-	db          *sql.DB
+	db *sql.DB
 )
 
 func build(ctx context.Context, id, dir, code string) error {
@@ -44,7 +41,7 @@ func build(ctx context.Context, id, dir, code string) error {
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("%w: %s", err, strings.TrimSpace(errSb.String()))
 	}
-	if err := os.Mkdir(dir + "_" + id, 0750); err != nil && !os.IsExist(err) {
+	if err := os.Mkdir(dir+"_"+id, 0750); err != nil && !os.IsExist(err) {
 		return err
 	}
 	f, err = os.Create(dir + "_" + id + "/Dockerfile")
@@ -63,16 +60,16 @@ CMD ["./app_` + id + `"]
 	if err := f.Close(); err != nil {
 		return err
 	}
-	if err := copyFile("libhttpsrv.so", dir + "_" + id + "/libhttpsrv.so"); err != nil {
+	if err := copyFile("libhttpsrv.so", dir+"_"+id+"/libhttpsrv.so"); err != nil {
 		return err
 	}
-	if err := copyFile(dir + "/app_" + id, dir + "_" + id + "/app_" + id); err != nil {
+	if err := copyFile(dir+"/app_"+id, dir+"_"+id+"/app_"+id); err != nil {
 		return err
 	}
-	if err := os.Chmod(dir + "_" + id + "/app_" + id, 0755); err != nil {
+	if err := os.Chmod(dir+"_"+id+"/app_"+id, 0755); err != nil {
 		return err
 	}
-	cmd = exec.CommandContext(ctx, "docker", "build", "-t", "mojoapps/" + id, ".")
+	cmd = exec.CommandContext(ctx, "docker", "build", "-t", "mojoapps/"+id, ".")
 	cmd.Dir = dir + "_" + id
 	errSb.Reset()
 	cmd.Stderr = &errSb
@@ -98,48 +95,20 @@ func copyFile(src, dst string) error {
 }
 
 func run(id, dir string, port int, lib string) error {
-	/*if cmd, ok := appCommands.Load(id); ok {
-		cmd := cmd.(*exec.Cmd)
-		if err := cmd.Process.Kill(); err != nil {
-			slog.Error("kill failed", slog.String("id", id), slog.Any("error", err))
-		} else {
-			slog.Info("app killed", slog.String("id", id))
-		}
-		appCommands.Delete(id)
-	}*/
-	cmd := exec.Command("docker", "kill", "mojoapp-" + id)
+	cmd := exec.Command("docker", "kill", "mojoapp-"+id)
 	if err := cmd.Run(); err != nil {
 		slog.Info("docker kill failed")
 	}
-	cmd = exec.Command("docker", "remove", "mojoapp-" + id)
+	cmd = exec.Command("docker", "remove", "mojoapp-"+id)
 	if err := cmd.Run(); err != nil {
 		slog.Info("docker remove failed")
 	}
-	/*pid, err := pidof(binaryFile)
-	if err != nil {
-		return err
-	}
-	if pid != 0 {
-		cmd := exec.Command("kill", strconv.Itoa(pid))
-		if err := cmd.Run(); err != nil {
-			return err
-		}
-	}*/
-	cmd = exec.Command("docker", "run", "-dp", fmt.Sprintf("%d:%d", port, port), "-e", fmt.Sprintf("PORT=%d", port), "--name=mojoapp-" + id, "--memory=10m", "--cpus=0.1", "mojoapps/" + id)
+	cmd = exec.Command("docker", "run", "-dp", fmt.Sprintf("%d:%d", port, port), "-e", fmt.Sprintf("PORT=%d", port), "--name=mojoapp-"+id, "--memory=10m", "--cpus=0.1", "mojoapps/"+id)
 	var errSb strings.Builder
-        cmd.Stderr = &errSb
+	cmd.Stderr = &errSb
 	if err := cmd.Start(); err != nil {
 		slog.Info("docker run failed")
 	}
-	/*binaryFile := "app_" + id
-	cmd = exec.Command("./" + binaryFile)
-	cmd.Dir = dir
-	cmd.Env = []string{"PORT=" + strconv.Itoa(port), "HTTP_LIB=" + lib}
-	if err := cmd.Start(); err != nil {
-		return err
-	}
-	appCommands.Store(id, cmd)
-	appPorts.Store(id, port)*/
 	go func() {
 		if err := cmd.Wait(); err != nil {
 			slog.Error("app wait failed", slog.String("id", id), slog.Any("error", err))
@@ -147,25 +116,8 @@ func run(id, dir string, port int, lib string) error {
 		} else {
 			slog.Info("app exited", slog.String("id", id))
 		}
-		//appCommands.Delete(id)
 	}()
 	return nil
-}
-
-func pidof(name string) (int, error) {
-	cmd := exec.Command("pidof", name)
-	b, err := cmd.Output()
-	if err != nil {
-		var exitErr *exec.ExitError
-		if errors.As(err, &exitErr) {
-			if string(exitErr.Stderr) == "" {
-				return 0, nil
-			}
-		}
-		return 0, err
-	}
-	output := strings.TrimSpace(string(b))
-	return strconv.Atoi(output)
 }
 
 type buildAndRunRequest struct {
@@ -239,12 +191,6 @@ func proxyHandler(w http.ResponseWriter, req *http.Request) {
 		}
 		return
 	}
-	// port, ok := appPorts.Load(id)
-	// if !ok {
-	// 	slog.ErrorContext(ctx, "unknown ID", slog.String("id", id))
-	// 	http.Error(w, "unknown ID", http.StatusBadRequest)
-	// 	return
-	// }
 	path = path[i+1:]
 	url := fmt.Sprintf("http://localhost:%d%s?%s", port, path, req.URL.RawQuery)
 	slog.InfoContext(ctx, "redirecting", slog.String("url", url))
@@ -300,26 +246,3 @@ func main() {
 		os.Exit(1)
 	}
 }
-
-// func xmain() {
-// 	f, err := os.Open("app.mojo")
-// 	if err != nil {
-// 		fmt.Fprintln(os.Stderr, err)
-// 		os.Exit(1)
-// 	}
-// 	defer f.Close()
-// 	code, err := io.ReadAll(f)
-// 	if err != nil {
-// 		fmt.Fprintln(os.Stderr, err)
-// 		os.Exit(1)
-// 	}
-// 	if err := build(context.Background(), "1234", "build", string(code)); err != nil {
-// 		fmt.Fprintln(os.Stderr, "build failed:", err)
-// 		os.Exit(1)
-// 	}
-// 	if err := run("1234", "build", 8080, "../libhttpsrv.dylib"); err != nil {
-// 		fmt.Fprintln(os.Stderr, "run failed:", err)
-// 		os.Exit(1)
-// 	}
-// }
-
