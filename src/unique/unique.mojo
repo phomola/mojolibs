@@ -1,6 +1,7 @@
 from utils import Variant
 from collections import List, Dict, Optional
 from rc import RC
+from collections import Dict
 
 var strings = Dict[String, InternedString]()
 
