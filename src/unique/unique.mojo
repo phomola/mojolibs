@@ -1,4 +1,5 @@
 from rc import RC
+from collections import Dict
 
 var strings = Dict[String, InternedString]()
 
@@ -11,7 +12,7 @@ struct InternedString(EqualityComparable):
             strings = Dict[String, InternedString]()    # without this, the unit test fails
         var so = strings.get(val)
         if so:
-            self.ptr = so.value()[].ptr
+            self.ptr = so.value().ptr
         else:
             self.ptr = RC(val)
             strings[val] = self.ptr
@@ -22,5 +23,5 @@ struct InternedString(EqualityComparable):
     fn __ne__(self, istr: Self) -> Bool:
         return not (self == istr)
 
-    fn __getitem__(self) -> ref[__lifetime_of(self)] String:
+    fn __getitem__(self) -> String:
         return self.ptr[]
