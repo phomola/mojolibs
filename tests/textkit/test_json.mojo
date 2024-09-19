@@ -1,5 +1,5 @@
 from testing import assert_equal, assert_true
-from textkit import parse_json_object, JSONObject, JSONArray
+from textkit import parse_json_object, JSONObject, JSONArray, JSONNull, null
 
 fn test_json_parser() raises:
     var obj = parse_json_object("""
@@ -11,10 +11,11 @@ fn test_json_parser() raises:
         "key5": 12.34,
         "key6": {},
         "key7": [],
-        "key8": [1, 2, 3]
+        "key8": [1, 2, 3],
+        "key9": null
     }
     """)
-    assert_equal(8, len(obj.dict))
+    assert_equal(9, len(obj.dict))
     assert_true(obj.dict.get("key1"))
     assert_true(obj.dict.get("key1").value()[].isa[Bool]())
     assert_equal(True, obj.dict.get("key1").value()[][Bool])
@@ -39,3 +40,6 @@ fn test_json_parser() raises:
     assert_true(obj.dict.get("key8"))
     assert_true(obj.dict.get("key8").value()[].isa[JSONArray]())
     assert_equal(3, len(obj.dict.get("key8").value()[][JSONArray].array))
+    assert_true(obj.dict.get("key9"))
+    assert_true(obj.dict.get("key9").value()[].isa[JSONNull]())
+    assert_equal(null, obj.dict.get("key9").value()[][JSONNull])
