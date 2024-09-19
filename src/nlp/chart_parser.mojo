@@ -34,20 +34,6 @@ struct Edge(Stringable):
     fn __str__(self) -> String:
         return "-" + str(self.start) + "- " + str(self.tree) + " " + str(self.avm) + " -" + str(self.end) + "-"
 
-    # fn tree(self) -> String:
-    #     var s = self.category
-    #     if len(self.children) > 0:
-    #         s += "("
-    #         var first = True
-    #         for el in self.children:
-    #             if first:
-    #                 first = False
-    #             else:
-    #                 s += ","
-    #             s += el[].tree()
-    #         s += ")"
-    #     return s
-
 @value
 struct Rule(Stringable):
     var lhs: String
