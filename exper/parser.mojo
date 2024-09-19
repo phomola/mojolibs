@@ -74,11 +74,11 @@ fn _parse_rule(tokens: List[Token], inout i: Int) raises -> Rule:
     i += 1
     print("# 1", i, len(tokens))
     t = tokens[i]
-    print("# 2", t.form)
+    print("# 2", t.form, len(t.form))
     if t.form != ">":
         print("# 3")
         raise Error("expected '>' at " + str(t.line) + ":" + str(t.column))
-    print("# 4")
+    print("# 4", t.form)
     var rhs = List[String]()
     var idx = 0
     i += 1

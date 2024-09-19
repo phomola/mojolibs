@@ -22,16 +22,36 @@ alias char_Z = ord("Z")
 alias char_a = ord("a")
 alias char_z = ord("z")
 
-@value
 struct Token:
     var type: Int
     var form: String
     var line: Int
     var column: Int
 
+    fn __init__(inout self, type: Int, form: String, line: Int, column: Int):
+        self.type = type
+        self.form = form
+        self.line = line
+        self.column = column
+    
+    fn __copyinit__(inout self, t: Token):
+        self.type = t.type
+        self.form = t.form
+        self.line = t.line
+        self.column = t.column
+
+    fn __moveinit__(inout self, owned t: Token):
+        self.type = t.type
+        self.form = t.form^
+        self.line = t.line
+        self.column = t.column
+
     fn __eq__(tok1: Token, tok2: Token) -> Bool:
         return tok1.type == tok2.type and tok1.form == tok2.form and tok1.line == tok2.line and tok1.column == tok2.column
     
+    fn __eq__(self: Token, form: String) -> Bool:
+        return self.form == form
+
     fn __str__(self: Token) -> String:
         return str(self.type) + " " + self.form + " " + str(self.line) + ":" + str(self.column)
 
