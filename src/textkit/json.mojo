@@ -129,18 +129,34 @@ fn _parse_json_value(tokens: List[Token], inout i: Int) raises -> Variant[Int, F
         i += 1
         return t.form
     if t.type == number:
-        i += 1
-        var t2 = tokens[i]
-        if t2.form != ".":
-            return atol(t.form)
-        i += 1
-        var t3 = tokens[i]
-        if t3.type != number:
-            raise Error("expected number at " + str(t.line) + ":" + str(t.column))
-        i += 1
-        return atof(t.form + "." + t3.form)
+        return convert_json_number(_parse_number(tokens, i))
     if t.form == "{":
         return _parse_json_object(tokens, i)
     if t.form == "[":
         return _parse_json_array(tokens, i)
+    if t.form == "-":
+        i += 1
+        t = tokens[i]
+        if t.type == number:
+            return convert_json_number(_parse_number(tokens, i, neg=True))
     raise Error("unexpected value at " + str(t.line) + ":" + str(t.column))
+
+fn _parse_number(tokens: List[Token], inout i: Int, neg: Bool = False) raises -> Variant[Int, Float64]:
+    var t = tokens[i]
+    i += 1
+    var t2 = tokens[i]
+    if t2.form != ".":
+        return atol(t.form) * (-1 if neg else 1)
+    i += 1
+    var t3 = tokens[i]
+    if t3.type != number:
+        raise Error("expected number at " + str(t.line) + ":" + str(t.column))
+    i += 1
+    return atof(t.form + "." + t3.form) * (-1 if neg else 1)
+
+fn convert_json_number(x: Variant[Int, Float64]) raises -> Variant[Int, Float64, String, Bool, JSONObject, JSONArray, JSONNull]:
+    if x.isa[Int]():
+        return x[Int]
+    if x.isa[Float64]():
+        return x[Float64]
+    raise Error("unexpected number type")

@@ -12,10 +12,12 @@ fn test_json_parser() raises:
         "key6": {},
         "key7": [],
         "key8": [1, 2, 3],
-        "key9": null
+        "key9": null,
+        "key10": -1234,
+        "key11": -12.34
     }
     """)
-    assert_equal(9, len(obj.dict))
+    assert_equal(11, len(obj.dict))
     assert_true(obj.dict.get("key1"))
     assert_true(obj.dict.get("key1").value()[].isa[Bool]())
     assert_equal(True, obj.dict.get("key1").value()[][Bool])
@@ -43,3 +45,9 @@ fn test_json_parser() raises:
     assert_true(obj.dict.get("key9"))
     assert_true(obj.dict.get("key9").value()[].isa[JSONNull]())
     assert_equal(null, obj.dict.get("key9").value()[][JSONNull])
+    assert_true(obj.dict.get("key10"))
+    assert_true(obj.dict.get("key10").value()[].isa[Int]())
+    assert_equal(-1234, obj.dict.get("key10").value()[][Int])
+    assert_true(obj.dict.get("key11"))
+    assert_true(obj.dict.get("key11").value()[].isa[Float64]())
+    assert_equal(-12.34, obj.dict.get("key11").value()[][Float64])
