@@ -3,7 +3,7 @@ from collections import List, Dict, Optional
 from nlp.avm import AVM
 
 @value
-struct Tree:
+struct Tree(Stringable):
     var root: String
     var children: Optional[List[Tree]]
 
