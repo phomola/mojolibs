@@ -1,3 +1,5 @@
+from memory import UnsafePointer
+
 struct PointerCount[T: Movable]:
     var val: T
     var count: Int
