@@ -1,6 +1,7 @@
 from sys import ffi
-from memory import memcpy
+from memory import memcpy, UnsafePointer
 from os import getenv
+from utils import StringRef
 
 alias HttpCtx = UnsafePointer[Int]
 
