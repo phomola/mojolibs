@@ -1,3 +1,3 @@
 trait Reader:
-    fn read(self, inout list: List[UInt8]) raises -> Int:
+    fn read_bytes(self, n: Int) raises -> List[UInt8]:
         ...

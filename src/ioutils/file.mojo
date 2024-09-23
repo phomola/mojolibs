@@ -6,11 +6,8 @@ struct File(Reader):
     fn __init__(inout self, owned handle: FileHandle):
         self.handle = handle^
 
-    fn read(self, inout list: List[UInt8]) raises -> Int:
-        list2 = self.handle.read_bytes(len(list))
-        for i in range(len(list2)):
-            list[i] = list2[i]
-        return len(list2)
+    fn read_bytes(self, n: Int) raises -> List[UInt8]:
+        return self.handle.read_bytes(n)
 
     fn __del__(owned self):
         try:
