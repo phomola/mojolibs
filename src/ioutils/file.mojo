@@ -14,7 +14,9 @@ struct File(Reader):
 
     fn __del__(owned self):
         try:
-            self.handle.close()
+            self.close()
         except e:
             print("failed to close file handle", file=stderr)
-        print("file closed")
+
+    fn close(inout self) raises:
+        self.handle.close()
