@@ -54,6 +54,8 @@ fn _parse_sexpr(tokens: List[Token], inout i: Int) raises -> Sexpr:
     t = tokens[i]
     var list = List[Variant[Identifier, String, Int, Float64, Sexpr]]()
     while True:
+        if t.type == eof:
+            raise Error("unexpected EOF")
         if t.form == ")":
             return Sexpr(list)
         if t.type == word:
