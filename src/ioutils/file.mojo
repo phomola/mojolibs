@@ -1,6 +1,6 @@
 from sys import stderr
 
-struct File(Reader):
+struct File(Reader, Writer, Closer):
     var handle: FileHandle
 
     fn __init__(inout self, owned handle: FileHandle):
@@ -8,9 +8,6 @@ struct File(Reader):
 
     fn __moveinit__(inout self, owned file: File):
         self.handle = file.handle^
-
-    fn read_bytes(inout self, n: Int) raises -> List[UInt8]:
-        return self.handle.read_bytes(n)
 
     fn __del__(owned self):
         try:
@@ -20,3 +17,9 @@ struct File(Reader):
 
     fn close(inout self) raises:
         self.handle.close()
+
+    fn read_bytes(inout self, n: Int) raises -> List[UInt8]:
+        return self.handle.read_bytes(n)
+
+    fn write_bytes(inout self, list: List[UInt8]) raises:
+        self.handle.write(list)
