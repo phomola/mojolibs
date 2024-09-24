@@ -1,4 +1,4 @@
-from nlp import parse_grammar, parse_chart, AVM, AVP, Chart, Edge, Grammar, Rule, Tree
+from nlp import parse_grammar, parse_chart, AVM, AVP, Chart, Edge, Grammar, Rule
 from sys import argv, stderr, exit
 from pathlib import Path
 from utils import Variant
