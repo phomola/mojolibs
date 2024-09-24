@@ -34,7 +34,7 @@ struct Data:
 
 struct GoApi:
     var golib_listen_and_serve: fn(Int64) -> None
-    var golib_register_handler: fn(fn(HttpCtx) -> None, StringRef) -> None
+    var golib_register_handler: fn(StringRef, fn(HttpCtx) -> None) -> None
     var golib_check: fn(HttpCtx) -> None
     var golib_get_body: fn(HttpCtx) -> Data
     var golib_free: fn(UnsafePointer[UInt8]) -> None
@@ -44,7 +44,7 @@ struct GoApi:
     fn __init__(inout self):
         var h = ffi.DLHandle(getenv("HTTP_LIB"))
         self.golib_listen_and_serve = h.get_function[fn(Int64) -> None]("golib_listen_serve")
-        self.golib_register_handler = h.get_function[fn(fn(HttpCtx) -> None, StringRef) -> None]("golib_register_handler")
+        self.golib_register_handler = h.get_function[fn(StringRef, fn(HttpCtx) -> None) -> None]("golib_register_handler")
         self.golib_check = h.get_function[fn(HttpCtx) -> None]("golib_check")
         self.golib_get_body = h.get_function[fn(HttpCtx) -> Data]("golib_get_body")
         self.golib_free = h.get_function[fn(UnsafePointer[UInt8]) -> None]("golib_free")
@@ -59,7 +59,7 @@ struct GoApi:
         self.listen_and_serve(port)
 
     fn register_handler(self, path: String, handler: fn(HttpCtx) -> None):
-        self.golib_register_handler(handler, path._strref_dangerous())
+        self.golib_register_handler(path._strref_dangerous(), handler)
         path._strref_keepalive()
     
     fn check(self, ctx: HttpCtx):

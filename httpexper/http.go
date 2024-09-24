@@ -52,9 +52,8 @@ func golib_get_body(hp unsafe.Pointer) C.data {
 	if err != nil {
 		return C.data{}
 	}
-	cb := C.CBytes(b)
 	return C.data{
-		ptr: cb,
+		ptr: C.CBytes(b),
 		len: C.int64_t(len(b)),
 	}
 }
@@ -72,8 +71,8 @@ func golib_write_header(hp unsafe.Pointer, status C.int64_t) {
 }
 
 //export golib_register_handler
-func golib_register_handler(handler unsafe.Pointer, cpath *C.char) {
-	path := C.GoString(cpath)
+func golib_register_handler(cpath unsafe.Pointer, clen C.int, handler unsafe.Pointer) {
+	path := string(C.GoBytes(cpath, clen))
 	fmt.Println("registering handler for", path)
 	mux.HandleFunc(path, func(w http.ResponseWriter, req *http.Request) {
 		h := cgo.NewHandle(reqData{
