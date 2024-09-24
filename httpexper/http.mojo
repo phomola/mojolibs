@@ -3,7 +3,7 @@ from memory import memcpy, UnsafePointer
 from os import getenv
 from utils import StringRef
 
-alias HttpCtx = UnsafePointer[Int]
+alias HttpCtx = UnsafePointer[NoneType]
 
 var http = GoApi()
 
