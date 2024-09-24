@@ -57,16 +57,19 @@ fn _parse_sexpr(tokens: List[Token], inout i: Int) raises -> Sexpr:
         if t.type == eof:
             raise Error("unexpected EOF")
         if t.form == ")":
+            i += 1
             return Sexpr(list)
         if t.type == word:
             list.append(Identifier(t.form))
+            i += 1
         elif t.type == number:
             list.append(atol(t.form))
+            i += 1
         elif t.type == string:
             list.append(t.form)
+            i += 1
         elif t.form == "(":
             list.append(_parse_sexpr(tokens, i))
         else:
             raise Error("expected valid element type at " + str(t.line) + ":" + str(t.column))
-        i += 1
         t = tokens[i]
