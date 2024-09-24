@@ -28,6 +28,8 @@ struct Sexpr:
                 s += el[][String]
             elif el[].isa[Int]():
                 s += str(el[][Int])
+            elif el[].isa[Float64]():
+                s += str(el[][Float64])
             elif el[].isa[Sexpr]():
                 s += str(el[][Sexpr])
             else:
