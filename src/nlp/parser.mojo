@@ -1,5 +1,4 @@
-from nlp.avm import AVM, AVP
-from nlp.chart_parser import Chart, Edge, Grammar, Rule, Tree
+from nlp import AVM, AVP, Chart, Edge, Grammar, Rule, Tree
 from textkit import tokenise, Token, word, symbol, string, number, eol, eof
 from sys import argv, stderr, exit
 from pathlib import Path
@@ -24,18 +23,19 @@ fn parse_chart(input: List[UInt8]) raises -> Chart:
     return _parse_chart(tokens, i)
 
 fn _parse_grammar(tokens: List[Token], inout i: Int) raises -> Grammar:
-    var t = tokens[i]
     var rules = List[Rule]()
-    while t.type != eof:
+    while True:
         var rule = _parse_rule(tokens, i)
-        rules.append(rule)
-        t = tokens[i]
+        if rule:
+            rules.append(rule.value())
+        else:
+            break
     return Grammar(rules)
 
-fn _parse_rule(tokens: List[Token], inout i: Int) raises -> Rule:
+fn _parse_rule(tokens: List[Token], inout i: Int) raises -> Optional[Rule]:
     var t = tokens[i]
     if t.type == eof:
-        raise Error("unexpected EOF")
+        return None
     if t.type != word:
         raise Error("expected identifier at " + str(t.line) + ":" + str(t.column))
     var lhs = t.form
@@ -144,18 +144,20 @@ fn _parse_annotations(tokens: List[Token], inout i: Int, idx: Int) raises -> Lis
         t = tokens[i]
 
 fn _parse_chart(tokens: List[Token], inout i: Int) raises -> Chart:
-    var t = tokens[i]
     var chart = Chart()
-    while t.type != eof:
+    while True:
         var edge = _parse_edge(tokens, i)
-        chart.add(edge)
-        t = tokens[i]
+        if edge:
+            chart.add(edge.value())
+        else:
+            break
+        # t = tokens[i]
     return chart
 
-fn _parse_edge(tokens: List[Token], inout i: Int) raises -> Edge:
+fn _parse_edge(tokens: List[Token], inout i: Int) raises -> Optional[Edge]:
     var t = tokens[i]
     if t.type == eof:
-        raise Error("unexpected EOF")
+        return None #raise Error("unexpected EOF")
     if t.form != "-":
         raise Error("expected '-' at " + str(t.line) + ":" + str(t.column))
     i += 1
@@ -188,7 +190,7 @@ fn _parse_edge(tokens: List[Token], inout i: Int) raises -> Edge:
         raise Error("expected '-' at " + str(t.line) + ":" + str(t.column))
     i += 1
     t = tokens[i]
-    return Edge(start, end, cat, avm, 0, False, Tree(cat, None))
+    return Edge(start, end, cat, avm, 0, False, Tree(cat, List[Tree]()))
 
 fn _parse_avm(tokens: List[Token], inout i: Int) raises -> AVM:
     var t = tokens[i]

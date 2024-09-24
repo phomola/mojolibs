@@ -5,14 +5,14 @@ from nlp.avm import AVM
 @value
 struct Tree(Stringable):
     var root: String
-    var children: Optional[List[Tree]]
+    var children: List[Tree]
 
     fn __str__(self) -> String:
         var s = self.root
-        if self.children:
+        if len(self.children) > 0:
             s += "("
             var first = True
-            for child in self.children.value():
+            for child in self.children:
                 if first:
                     first = False
                 else:
