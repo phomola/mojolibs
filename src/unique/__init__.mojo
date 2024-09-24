@@ -1,1 +1,1 @@
-from .unique import InternedString
+from .unique import InternedString, init_global_vars

@@ -1,5 +1,7 @@
 from testing import assert_equal, assert_true
 from textkit import parse_json_object, JSONObject, JSONArray, JSONNull, null
+from utils import Variant
+from collections import List, Dict, Optional
 
 fn test_json_parser() raises:
     var obj = parse_json_object("""
