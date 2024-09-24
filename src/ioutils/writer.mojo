@@ -1,0 +1,3 @@
+trait Writer(Movable):
+    fn write_bytes(inout self, list: List[UInt8]) raises:
+        ...
