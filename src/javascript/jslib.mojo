@@ -17,10 +17,18 @@ struct _JS:
     var js_string_get_maximum_utf8_cstring_size: fn(UnsafePointer[NoneType]) -> Int
     var js_string_get_utf8_cstring: fn(UnsafePointer[NoneType], UnsafePointer[UInt8], Int) -> Int
     var js_evaluate_script: fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType], Int, UnsafePointer[NoneType]) -> UnsafePointer[NoneType]
+    var js_value_is_null: fn(UnsafePointer[NoneType], UnsafePointer[NoneType]) -> Bool
+    var js_value_is_undefined: fn(UnsafePointer[NoneType], UnsafePointer[NoneType]) -> Bool
     var js_value_is_string: fn(UnsafePointer[NoneType], UnsafePointer[NoneType]) -> Bool
+    var js_value_is_number: fn(UnsafePointer[NoneType], UnsafePointer[NoneType]) -> Bool
+    var js_value_is_object: fn(UnsafePointer[NoneType], UnsafePointer[NoneType]) -> Bool
     var js_value_to_string_copy: fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType]) -> UnsafePointer[NoneType]
+    var js_value_to_number: fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType]) -> Float64
+    var js_value_to_object: fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType]) -> UnsafePointer[NoneType]
     var js_value_protect: fn(UnsafePointer[NoneType], UnsafePointer[NoneType]) -> None
     var js_value_unprotect: fn(UnsafePointer[NoneType], UnsafePointer[NoneType]) -> None
+    var js_object_has_property: fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType]) -> Bool
+    var js_object_get_property: fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType]) -> UnsafePointer[NoneType]
 
     fn __init__(inout self):
         self.lib = DLHandle(macosDylib)
@@ -33,7 +41,15 @@ struct _JS:
         self.js_string_get_maximum_utf8_cstring_size = self.lib.get_function[fn(UnsafePointer[NoneType]) -> Int]("JSStringGetMaximumUTF8CStringSize")
         self.js_string_get_utf8_cstring = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[UInt8], Int) -> Int]("JSStringGetUTF8CString")
         self.js_evaluate_script = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType], Int, UnsafePointer[NoneType]) -> UnsafePointer[NoneType]]("JSEvaluateScript")
+        self.js_value_is_null = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType]) -> Bool]("JSValueIsNull")
+        self.js_value_is_undefined = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType]) -> Bool]("JSValueIsUndefined")
         self.js_value_is_string = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType]) -> Bool]("JSValueIsString")
+        self.js_value_is_number = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType]) -> Bool]("JSValueIsNumber")
+        self.js_value_is_object = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType]) -> Bool]("JSValueIsObject")
         self.js_value_to_string_copy = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType]) -> UnsafePointer[NoneType]]("JSValueToStringCopy")
+        self.js_value_to_number = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType]) -> Float64]("JSValueToNumber")
+        self.js_value_to_object = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType]) -> UnsafePointer[NoneType]]("JSValueToObject")
         self.js_value_protect = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType]) -> None]("JSValueProtect")
         self.js_value_unprotect = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType]) -> None]("JSValueUnprotect")
+        self.js_object_has_property = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType]) -> Bool]("JSObjectHasProperty")
+        self.js_object_get_property = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType]) -> UnsafePointer[NoneType]]("JSObjectGetProperty")
