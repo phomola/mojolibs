@@ -26,7 +26,7 @@ inline void c_invoke_callback(void* p, void* arg) {
 import "C"
 
 var (
-	mux = new(http.ServeMux)
+	mux http.ServeMux
 )
 
 type reqData struct {
@@ -87,7 +87,7 @@ func golib_register_handler(cpath unsafe.Pointer, clen C.int, handler unsafe.Poi
 //export golib_listen_serve
 func golib_listen_serve(port C.int64_t) {
 	fmt.Println("listening on port", port)
-	if err := http.ListenAndServe(":"+strconv.Itoa(int(port)), mux); err != http.ErrServerClosed {
+	if err := http.ListenAndServe(":"+strconv.Itoa(int(port)), &mux); err != http.ErrServerClosed {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
