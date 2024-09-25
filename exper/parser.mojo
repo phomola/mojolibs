@@ -18,7 +18,7 @@ fn main():
             exit(1)
         var grammar = get_grammar(p.read_bytes())
         print("grammar:")
-        print(str(grammar))
+        print(grammar)
 
         p = Path(chart_file)
         if not p.exists():
@@ -26,11 +26,11 @@ fn main():
             exit(1)
         var chart = get_chart(p.read_bytes())
         print("initial chart")
-        print(str(chart))
+        print(chart)
         
         chart.parse(grammar)
         print("final chart")
-        print(str(chart))
+        print(chart)
     except e:
         print(e, file=stderr)
         exit(1)        

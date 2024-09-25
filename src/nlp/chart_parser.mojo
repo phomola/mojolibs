@@ -4,7 +4,7 @@ from nlp.avm import AVM
 from memory import Arc
 
 @value
-struct Edge(Stringable):
+struct Edge(Stringable, Formattable):
     var start: Int
     var end: Int
     var category: String
@@ -15,6 +15,11 @@ struct Edge(Stringable):
 
     fn __str__(self) -> String:
         return "-" + str(self.start) + "- " + self.tree() + " " + str(self.avm) + " -" + str(self.end) + "-"
+
+    fn format_to(self, inout writer: Formatter):
+        writer.write("-", self.start, "- ", self.tree(), " ")
+        self.avm.format_to(writer)
+        writer.write(" -", self.end, "-")
 
     fn tree(self) -> String:
         var s = self.category
@@ -31,7 +36,7 @@ struct Edge(Stringable):
         return s
 
 @value
-struct Rule(Stringable):
+struct Rule(Stringable, Formattable):
     var lhs: String
     var rhs: List[String]
     var avmfn: fn(List[AVM]) escaping -> Optional[AVM]
@@ -42,8 +47,13 @@ struct Rule(Stringable):
             s += " " + sym[]
         return s
 
+    fn format_to(self, inout writer: Formatter):
+        writer.write(self.lhs, " ->")
+        for sym in self.rhs:
+            writer.write(" ", sym[])
+
 @value
-struct Grammar(Stringable):
+struct Grammar(Stringable, Formattable):
     var rules: List[Rule]
 
     fn __str__(self) -> String:
@@ -52,8 +62,13 @@ struct Grammar(Stringable):
             s += str(rule[]) + "\n"
         return s
 
+    fn format_to(self, inout writer: Formatter):
+        for rule in self.rules:
+            rule[].format_to(writer)
+            writer.write("\n")
+
 @value
-struct Chart(Stringable):
+struct Chart(Stringable, Formattable):
     var edges: Dict[Int, List[Arc[Edge]]]
 
     fn __str__(self) -> String:
@@ -63,6 +78,13 @@ struct Chart(Stringable):
                 if not edge[][].used:
                     s += str(edge[][]) + "\n"
         return s
+
+    fn format_to(self, inout writer: Formatter):
+        for edges in self.edges.values():
+            for edge in edges[]:
+                if not edge[][].used:
+                    edge[][].format_to(writer)
+                    writer.write("\n")
 
     fn __init__(inout self):
         self.edges = Dict[Int, List[Arc[Edge]]]()
