@@ -1,5 +1,6 @@
-from memory import UnsafePointer, memcpy
+from memory import UnsafePointer
 from utils import StringRef
+from textkit import CStr
 
 struct JSString(Stringable,Formattable):
     var ptr: UnsafePointer[NoneType]
@@ -30,23 +31,3 @@ struct JSString(Stringable,Formattable):
 
     fn format_to(self, inout writer: Formatter):
         writer.write(str(self))
-
-struct CStr:
-    var ptr: UnsafePointer[UInt8]
-
-    fn __init__(inout self, s: String):
-        var ptr = UnsafePointer[UInt8].alloc(len(s) + 1)
-        memcpy(ptr, s.unsafe_ptr(), len(s))
-        ptr[len(s)] = 0
-        self.ptr = ptr
-
-    fn __enter__(self) -> UnsafePointer[UInt8]:
-        return self.ptr
-
-    fn __exit__(inout self):
-        self.ptr.free()
-        self.ptr = UnsafePointer[UInt8]()
-
-    fn __del__(owned self):
-        if self.ptr:
-            self.ptr.free()
