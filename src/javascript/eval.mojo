@@ -1,6 +1,6 @@
 from memory import UnsafePointer
 from .jslib import JS, c_null
-from .string import CStr
+from textkit import CStr
 
 fn js_evaluate(ctx: JSContext, script: String) raises -> JSValue:
     with CStr(script) as c_script:
