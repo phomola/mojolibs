@@ -3,10 +3,10 @@ from utils import StringRef
 from memory import UnsafePointer, memcpy
 
 fn string_from_bytes(b: List[UInt8]) -> String:
-    return str(StringRef(b.data, len(b)))
+    return StringRef(b.data, len(b))
 
 fn string_from_bytes(b: List[UInt8], l: Int) -> String:
-    return str(StringRef(b.data, l))
+    return StringRef(b.data, l)
 
 fn bytes_from_string(s: String) -> List[UInt8]:
     return s.as_bytes()
