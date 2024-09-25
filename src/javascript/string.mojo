@@ -1,6 +1,7 @@
 from memory import UnsafePointer
 from utils import StringRef
 from textkit import CStr
+from .jslib import JS, c_null
 
 struct JSString(Stringable,Formattable):
     var ptr: UnsafePointer[NoneType]

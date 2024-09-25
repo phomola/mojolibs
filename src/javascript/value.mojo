@@ -1,7 +1,6 @@
 from memory import UnsafePointer
-from .jslib import c_null
+from .jslib import JS, c_null
 from utils.numerics import isnan
-from .object import JSObject
 
 struct JSValue:
     var ptr: UnsafePointer[NoneType]
@@ -56,7 +55,7 @@ struct JSValue:
     fn to_string(self, ctx: JSContext) raises -> JSString:
         var js_string = JS.js_value_to_string_copy(ctx.ptr, self.ptr, c_null)
         if not js_string:
-            raise Error("JS string copy conversion failed")
+            raise Error("JS string conversion failed")
         return JSString(js_string)
 
     fn to_number(self, ctx: JSContext) raises -> Float64:

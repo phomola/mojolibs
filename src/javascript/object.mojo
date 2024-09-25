@@ -1,5 +1,6 @@
 from memory import UnsafePointer
 from textkit import CStr
+from .jslib import JS, c_null
 
 struct JSObject:
     var ptr: UnsafePointer[NoneType]

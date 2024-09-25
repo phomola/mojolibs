@@ -1,5 +1,5 @@
 from memory import UnsafePointer
-from .jslib import c_null
+from .jslib import JS, c_null
 
 struct JSContext:
     var ptr: UnsafePointer[NoneType]
