@@ -1,4 +1,4 @@
-from nlp import parse_grammar, parse_chart, AVM, AVP, Chart, Edge, Grammar, Rule, Tree
+from nlp import parse_grammar, parse_chart, AVM, AVP, Chart, Edge, Grammar, Rule
 from sys import argv, stderr, exit
 from pathlib import Path
 from utils import Variant
@@ -18,7 +18,7 @@ fn main():
             exit(1)
         var grammar = get_grammar(p.read_bytes())
         print("grammar:")
-        print(str(grammar))
+        print(grammar)
 
         p = Path(chart_file)
         if not p.exists():
@@ -26,11 +26,11 @@ fn main():
             exit(1)
         var chart = get_chart(p.read_bytes())
         print("initial chart")
-        print(str(chart))
+        print(chart)
         
         chart.parse(grammar)
         print("final chart")
-        print(str(chart))
+        print(chart)
     except e:
         print(e, file=stderr)
         exit(1)        
