@@ -1,15 +1,11 @@
 from memory import UnsafePointer
 from .jslib import JS, c_null
 
-struct JSContext:
+struct JSGlobalContext:
     var ptr: UnsafePointer[NoneType]
 
-    @staticmethod
-    fn create_global() -> JSContext:
-        return JSContext(JS.js_global_context_create(c_null))
-
-    fn __init__(inout self, ptr: UnsafePointer[NoneType]):
-        self.ptr = ptr
+    fn __init__(inout self):
+        self.ptr = JS.js_global_context_create(c_null)
 
     fn __copyinit__(inout self, other: JSContext):
         self.ptr = JS.js_global_context_retain(other.ptr)        
@@ -19,3 +15,9 @@ struct JSContext:
 
     fn __del__(owned self):
         JS.js_global_context_release(self.ptr)
+
+struct JSContext:
+    var ptr: UnsafePointer[NoneType]
+
+    fn __init__(inout self, ctx: JSGlobalContext):
+        self.ptr = ctx.ptr

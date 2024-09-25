@@ -1,7 +1,7 @@
-from javascript import JSContext, js_evaluate
+from javascript import JSGlobalContext, js_evaluate
 
 fn main():
-    var ctx = JSContext.create_global()
+    var ctx = JSGlobalContext()
     try:
         var value = js_evaluate(ctx, """
             function f() {
