@@ -1,4 +1,3 @@
-from .engine import JSEngine
 from .context import JSContext
 from .string import JSString
 from .value import JSValue
