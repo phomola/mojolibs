@@ -22,7 +22,7 @@ fn main():
             print("b =", object.get_property(ctx, "b").as_string(ctx))
             print("c =", object.get_property(ctx, "c").as_string(ctx))
         else:
-            print("got non-string value")
+            print("got value of unknown type")
         value.unprotect(ctx)
     except e:
         print(e)        
