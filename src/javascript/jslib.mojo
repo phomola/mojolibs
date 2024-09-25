@@ -19,6 +19,8 @@ struct _JS:
     var js_evaluate_script: fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType], Int, UnsafePointer[NoneType]) -> UnsafePointer[NoneType]
     var js_value_is_string: fn(UnsafePointer[NoneType], UnsafePointer[NoneType]) -> Bool
     var js_value_to_string_copy: fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType]) -> UnsafePointer[NoneType]
+    var js_value_protect: fn(UnsafePointer[NoneType], UnsafePointer[NoneType]) -> None
+    var js_value_unprotect: fn(UnsafePointer[NoneType], UnsafePointer[NoneType]) -> None
 
     fn __init__(inout self):
         self.lib = DLHandle(macosDylib)
@@ -33,3 +35,5 @@ struct _JS:
         self.js_evaluate_script = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType], Int, UnsafePointer[NoneType]) -> UnsafePointer[NoneType]]("JSEvaluateScript")
         self.js_value_is_string = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType]) -> Bool]("JSValueIsString")
         self.js_value_to_string_copy = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType]) -> UnsafePointer[NoneType]]("JSValueToStringCopy")
+        self.js_value_protect = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType]) -> None]("JSValueProtect")
+        self.js_value_unprotect = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType]) -> None]("JSValueUnprotect")
