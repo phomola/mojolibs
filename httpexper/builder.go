@@ -55,7 +55,7 @@ COPY . .
 ENV HTTP_LIB=./libhttpsrv.so
 CMD ["./app_` + id + `"]
 `); err != nil {
-		return err
+		return errors.Join(err, f.Close())
 	}
 	if err := f.Close(); err != nil {
 		return err
@@ -167,7 +167,7 @@ func buildAndRunHandler(w http.ResponseWriter, req *http.Request) {
 		})
 		return
 	}
-	slog.InfoContext(ctx, "app run", slog.String("id", r.ID), slog.Int("run", r.Port))
+	slog.InfoContext(ctx, "app run", slog.String("id", r.ID), slog.Int("port", r.Port))
 	json.NewEncoder(w).Encode(&buildAndRunResponse{
 		Success: true,
 	})
