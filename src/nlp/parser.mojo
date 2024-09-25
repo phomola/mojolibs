@@ -151,13 +151,12 @@ fn _parse_chart(tokens: List[Token], inout i: Int) raises -> Chart:
             chart.add(edge.value())
         else:
             break
-        # t = tokens[i]
     return chart
 
 fn _parse_edge(tokens: List[Token], inout i: Int) raises -> Optional[Edge]:
     var t = tokens[i]
     if t.type == eof:
-        return None #raise Error("unexpected EOF")
+        return None
     if t.form != "-":
         raise Error("expected '-' at " + str(t.line) + ":" + str(t.column))
     i += 1
