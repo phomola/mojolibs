@@ -8,6 +8,9 @@ struct JSObject:
     fn __init__(inout self, ptr: UnsafePointer[NoneType]):
         self.ptr = ptr
 
+    fn __init__(inout self, value: JSValue):
+        self.ptr = value.ptr
+
     fn __copyinit__(inout self, other: JSObject):
         self.ptr = other.ptr
 

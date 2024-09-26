@@ -9,6 +9,9 @@ struct JSValue:
     fn __init__(inout self, ptr: UnsafePointer[NoneType]):
         self.ptr = ptr
 
+    fn __init__(inout self, object: JSObject):
+        self.ptr = object.ptr
+
     fn __init__(inout self, ctx: JSContext, number: Float64):
         self.ptr = JS.js_value_make_number(ctx.ptr, number)
 
