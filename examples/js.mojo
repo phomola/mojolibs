@@ -1,13 +1,12 @@
-from javascript import JSGlobalContext, js_evaluate
+from javascript import JSGlobalContext, JSContext, JSValue, js_evaluate
 
 fn main():
     var ctx = JSGlobalContext()
+    var global_object = JSContext(ctx).get_global_object()
+    global_object.set_property(ctx, "x", JSValue(ctx, "abcd"))
     try:
         var value = js_evaluate(ctx, """
-            function f() {
-                return {"a": 1234, "b": "abcd"}
-            }
-            f()
+            x
         """)
         value.protect(ctx)
         if value.is_string(ctx):

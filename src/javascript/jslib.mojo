@@ -25,10 +25,14 @@ struct _JS:
     var js_value_to_string_copy: fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType]) -> UnsafePointer[NoneType]
     var js_value_to_number: fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType]) -> Float64
     var js_value_to_object: fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType]) -> UnsafePointer[NoneType]
+    var js_value_make_number: fn(UnsafePointer[NoneType], Float64) -> UnsafePointer[NoneType]
+    var js_value_make_string: fn(UnsafePointer[NoneType], UnsafePointer[NoneType]) -> UnsafePointer[NoneType]
     var js_value_protect: fn(UnsafePointer[NoneType], UnsafePointer[NoneType]) -> None
     var js_value_unprotect: fn(UnsafePointer[NoneType], UnsafePointer[NoneType]) -> None
     var js_object_has_property: fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType]) -> Bool
     var js_object_get_property: fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType]) -> UnsafePointer[NoneType]
+    var js_object_set_property: fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType], Int, UnsafePointer[NoneType]) -> None
+    var js_context_get_global_object: fn(UnsafePointer[NoneType]) -> UnsafePointer[NoneType]
 
     fn __init__(inout self):
         self.lib = DLHandle(macosDylib)
@@ -49,7 +53,11 @@ struct _JS:
         self.js_value_to_string_copy = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType]) -> UnsafePointer[NoneType]]("JSValueToStringCopy")
         self.js_value_to_number = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType]) -> Float64]("JSValueToNumber")
         self.js_value_to_object = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType]) -> UnsafePointer[NoneType]]("JSValueToObject")
+        self.js_value_make_number = self.lib.get_function[fn(UnsafePointer[NoneType], Float64) -> UnsafePointer[NoneType]]("JSValueMakeNumber")
+        self.js_value_make_string = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType]) -> UnsafePointer[NoneType]]("JSValueMakeString")
         self.js_value_protect = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType]) -> None]("JSValueProtect")
         self.js_value_unprotect = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType]) -> None]("JSValueUnprotect")
         self.js_object_has_property = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType]) -> Bool]("JSObjectHasProperty")
         self.js_object_get_property = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType]) -> UnsafePointer[NoneType]]("JSObjectGetProperty")
+        self.js_object_set_property = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType], Int, UnsafePointer[NoneType]) -> None]("JSObjectSetProperty")
+        self.js_context_get_global_object = self.lib.get_function[fn(UnsafePointer[NoneType]) -> UnsafePointer[NoneType]]("JSContextGetGlobalObject")

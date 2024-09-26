@@ -1,12 +1,22 @@
 from memory import UnsafePointer
 from .jslib import JS, c_null
 from utils.numerics import isnan
+from textkit import CStr
 
 struct JSValue:
     var ptr: UnsafePointer[NoneType]
 
     fn __init__(inout self, ptr: UnsafePointer[NoneType]):
         self.ptr = ptr
+
+    fn __init__(inout self, ctx: JSContext, number: Float64):
+        self.ptr = JS.js_value_make_number(ctx.ptr, number)
+
+    fn __init__(inout self, ctx: JSContext, string: String):
+        with CStr(string) as c_string:
+            var js_string = JS.js_string_create_with_utf8_string(c_string)
+            self.ptr = JS.js_value_make_string(ctx.ptr, js_string)
+            JS.js_string_release(js_string)
 
     fn __copyinit__(inout self, other: JSValue):
         self.ptr = other.ptr
@@ -20,16 +30,15 @@ struct JSValue:
     fn as_string(self, ctx: JSContext) raises -> String:
         if self.is_undefined(ctx):
             return "undefined"
-        elif self.is_null(ctx):
+        if self.is_null(ctx):
             return "null"
-        elif self.is_string(ctx):
+        if self.is_string(ctx):
             return str(self.to_string(ctx))
-        elif self.is_number(ctx):
+        if self.is_number(ctx):
             return str(self.to_number(ctx))
-        elif self.is_object(ctx):
+        if self.is_object(ctx):
             return "object"
-        else:
-            return "???"
+        return "???"
 
     fn protect(self, ctx: JSContext):
         JS.js_value_protect(ctx.ptr, self.ptr)

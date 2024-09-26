@@ -21,3 +21,7 @@ struct JSContext:
 
     fn __init__(inout self, ctx: JSGlobalContext):
         self.ptr = ctx.ptr
+    
+    fn get_global_object(self) -> JSObject:
+        var js_object = JS.js_context_get_global_object(self.ptr)
+        return JSObject(js_object)

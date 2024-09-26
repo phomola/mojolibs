@@ -30,3 +30,9 @@ struct JSObject:
             var value = JS.js_object_get_property(ctx.ptr, self.ptr, js_name)
             JS.js_string_release(js_name)
             return JSValue(value)
+
+    fn set_property(self, ctx: JSContext, name: String, value: JSValue):
+        with CStr(name) as c_name:
+            var js_name = JS.js_string_create_with_utf8_string(c_name)
+            JS.js_object_set_property(ctx.ptr, self.ptr, js_name, value.ptr, 0, c_null)
+            JS.js_string_release(js_name)
