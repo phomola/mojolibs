@@ -2,8 +2,8 @@ from javascript import JSGlobalContext, JSContext, JSValue, js_evaluate
 
 fn main():
     var ctx = JSGlobalContext()
-    var global_object = JSContext(ctx).get_global_object()
-    global_object.set_property(ctx, "x", JSValue(ctx, "abcd"))
+    var global_object = ctx.get_global_object()
+    global_object.set_property(ctx, "x", JSValue(ctx, 1234))
     try:
         var value = js_evaluate(ctx, """
             x
