@@ -6,11 +6,18 @@ alias left_bracket = ord("{")
 alias right_bracket = ord("}")
 
 @value
+struct Attr:
+    var key: String
+    var value: Variant[String, Int, Object, List[Object]]
+
+@value
 struct Object:
     var dict: Dict[String, Variant[String, Int, Object, List[Object]]]
 
-    fn __init__(inout self):
+    fn __init__(inout self, *attrs: Attr):
         self.dict = Dict[String, Variant[String, Int, Object, List[Object]]]()
+        for attr in attrs:
+            self.dict[attr[].key] = attr[].value
 
     fn set(inout self, name: String, value: Variant[String, Int, Object, List[Object]]):
         self.dict[name] = value
