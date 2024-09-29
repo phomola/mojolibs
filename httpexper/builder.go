@@ -56,7 +56,7 @@ COPY . .
 ENV HTTP_LIB=./libhttpsrv.so
 CMD ["./app_` + id + `"]
 `); err != nil {
-		return err
+		return erros.Join(err, f.Close())
 	}
 	if err := f.Close(); err != nil {
 		return err
@@ -121,22 +121,6 @@ func run(id, dir string, port int, lib string) error {
 	return nil
 }
 
-func pidof(name string) (int, error) {
-	cmd := exec.Command("pidof", name)
-	b, err := cmd.Output()
-	if err != nil {
-		var exitErr *exec.ExitError
-		if errors.As(err, &exitErr) {
-			if string(exitErr.Stderr) == "" {
-				return 0, nil
-			}
-		}
-		return 0, err
-	}
-	output := strings.TrimSpace(string(b))
-	return strconv.Atoi(output)
-}
-
 type buildAndRunRequest struct {
 	ID   string `json:"id"`
 	Port int    `json:"port"`
@@ -184,7 +168,7 @@ func buildAndRunHandler(w http.ResponseWriter, req *http.Request) {
 		})
 		return
 	}
-	slog.InfoContext(ctx, "app run", slog.String("id", r.ID), slog.Int("run", r.Port))
+	slog.InfoContext(ctx, "app run", slog.String("id", r.ID), slog.Int("port", r.Port))
 	json.NewEncoder(w).Encode(&buildAndRunResponse{
 		Success: true,
 	})
