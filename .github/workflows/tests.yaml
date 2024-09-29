@@ -16,11 +16,3 @@ jobs:
       - name: Run tests
         run: |
           mojo test -I src tests
-      - name: Package
-        run: |
-          mojo package -o textkit.mojopkg src/textkit
-      - name: Upload package
-        uses: actions/upload-artifact@v4
-        with:
-          name: textkit.mojopkg
-          path: textkit.mojopkg
