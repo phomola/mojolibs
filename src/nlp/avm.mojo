@@ -6,16 +6,16 @@ struct AVP:
     var attr: String
     var value: Variant[String, AVM]
 
-struct AVM(Stringable):
+struct AVM(Stringable, Formattable):
     var features: Dict[String, Variant[String, AVM]]
-
-    fn __init__(inout self, owned features: Dict[String, Variant[String, AVM]]):
-        self.features = features^
 
     fn __init__(inout self, pairs: List[AVP]):
         self.features = Dict[String, Variant[String, AVM]]()
         for pair in pairs:
             self.features[pair[].attr] = pair[].value
+
+    fn __init__(inout self, owned features: Dict[String, Variant[String, AVM]]):
+        self.features = features^
 
     fn __copyinit__(inout self, avm: AVM):
         self.features = avm.features
@@ -34,7 +34,19 @@ struct AVM(Stringable):
                 sval = str(val[AVM])
             s += it[].key + ":" + sval + " "
         return s + "]"
-    
+
+    fn format_to(self, inout writer: Formatter):
+        writer.write("[ ")
+        for it in self.features.items():
+            writer.write(it[].key, ":")
+            var val = it[].value
+            if val.isa[String]():
+                writer.write(val[String])
+            elif val.isa[AVM]():
+                val[AVM].format_to(writer)
+            writer.write(" ")
+        writer.write("]")
+
     fn unify(avm1, avm2: AVM) -> Optional[AVM]:
         var fs = Dict[String, Variant[String, AVM]]()
         for it in avm1.features.items():
@@ -43,19 +55,19 @@ struct AVM(Stringable):
             var val2_opt = avm2.features.get(key)
             if val2_opt:
                 var val2 = val2_opt.value()
-                if val1.isa[String]() and val2[].isa[String]():
+                if val1.isa[String]() and val2.isa[String]():
                     var s1 = val1[String]
-                    var s2 = val2[][String]
+                    var s2 = val2[String]
                     if s1 == s2:
                         fs[key] = s1
                     else:
                         return None
-                elif val1.isa[AVM]() and val2[].isa[AVM]():
+                elif val1.isa[AVM]() and val2.isa[AVM]():
                     var avm1 = val1[AVM]
-                    var avm2 = val2[][AVM]
+                    var avm2 = val2[AVM]
                     var avm = avm1.unify(avm2)
                     if avm:
-                        fs[key] = avm.value()[]
+                        fs[key] = avm.value()
                     else:
                         return None
                 else:
@@ -66,5 +78,5 @@ struct AVM(Stringable):
             var key = it[].key
             if not key in avm1.features:
                 fs[key] = it[].value
-        return Optional(AVM(fs))
+        return AVM(fs)
 

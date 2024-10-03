@@ -1,0 +1,5 @@
+S > NP (>subj) VP (= subj.case=nom).
+NP > N (=).
+NP > Det (=) N (=).
+VP > V (=).
+VP > V (= obj.case=acc) NP (>obj).

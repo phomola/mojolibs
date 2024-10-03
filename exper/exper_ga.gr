@@ -1,0 +1,6 @@
+NP > N (=).
+VP > NP (>obj obj.case=nom).
+V' > V (= obj.case=gen) NP (>obj).
+VP > P (= prep=ag) V' (=).
+S > NP (>subj) VP (= subj.case=nom).
+IP > I (=) S (=).

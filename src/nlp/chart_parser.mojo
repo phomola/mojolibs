@@ -1,60 +1,42 @@
 from utils import Variant
 from collections import List, Dict, Optional
 from nlp.avm import AVM
-from rc import RC
+from memory import Arc
 
 @value
-struct Edge(Stringable):
+struct Edge(Stringable, Formattable):
     var start: Int
     var end: Int
     var category: String
     var avm: AVM
     var level: Int
-    var children: List[RC[Edge]]
-
-    # fn __init__(inout self, start: Int, end: Int, category: String, avm: AVM, level: Int, children: List[String]):
-    #     self.start = start
-    #     self.end = end
-    #     self.category = category
-    #     self.avm = avm
-    #     self.level = level
-    #     self.children = children
-
-    # fn __copyinit__(inout self, edge: Edge):
-    #     self.start = edge.start
-    #     self.end = edge.end
-    #     self.category = edge.category
-    #     self.avm = edge.avm
-    #     self.level = edge.level
-    #     self.children = edge.children
-
-    # fn __moveinit__(inout self, owned edge: Edge):
-    #     self.start = edge.start
-    #     self.end = edge.end
-    #     self.category = edge.category^
-    #     self.avm = edge.avm^
-    #     self.level = edge.level
-    #     self.children = edge.children^
+    var used: Bool
+    var children: List[Arc[Edge]]
 
     fn __str__(self) -> String:
         return "-" + str(self.start) + "- " + self.tree() + " " + str(self.avm) + " -" + str(self.end) + "-"
+
+    fn format_to(self, inout writer: Formatter):
+        writer.write("-", self.start, "- ", self.tree(), " ")
+        self.avm.format_to(writer)
+        writer.write(" -", self.end, "-")
 
     fn tree(self) -> String:
         var s = self.category
         if len(self.children) > 0:
             s += "("
             var first = True
-            for el in self.children:
+            for child in self.children:
                 if first:
                     first = False
                 else:
                     s += ","
-                s += el[][].tree()
+                s += child[][].tree()
             s += ")"
         return s
 
 @value
-struct Rule(Stringable):
+struct Rule(Stringable, Formattable):
     var lhs: String
     var rhs: List[String]
     var avmfn: fn(List[AVM]) escaping -> Optional[AVM]
@@ -65,8 +47,13 @@ struct Rule(Stringable):
             s += " " + sym[]
         return s
 
+    fn format_to(self, inout writer: Formatter):
+        writer.write(self.lhs, " ->")
+        for sym in self.rhs:
+            writer.write(" ", sym[])
+
 @value
-struct Grammar(Stringable):
+struct Grammar(Stringable, Formattable):
     var rules: List[Rule]
 
     fn __str__(self) -> String:
@@ -75,28 +62,38 @@ struct Grammar(Stringable):
             s += str(rule[]) + "\n"
         return s
 
+    fn format_to(self, inout writer: Formatter):
+        for rule in self.rules:
+            rule[].format_to(writer)
+            writer.write("\n")
+
 @value
-struct Chart(Stringable):
-    var edges: Dict[Int, List[RC[Edge]]]
+struct Chart(Stringable, Formattable):
+    var edges: Dict[Int, List[Arc[Edge]]]
 
     fn __str__(self) -> String:
         var s: String = ""
         for edges in self.edges.values():
             for edge in edges[]:
-                s += str(edge[][]) + "\n"
+                if not edge[][].used:
+                    s += str(edge[][]) + "\n"
         return s
 
-    fn __init__(inout self):
-        self.edges = Dict[Int, List[RC[Edge]]]()
-    
-    fn add(inout self, edge: Edge):
-        self.add(RC(edge))
+    fn format_to(self, inout writer: Formatter):
+        for edges in self.edges.values():
+            for edge in edges[]:
+                if not edge[][].used:
+                    edge[][].format_to(writer)
+                    writer.write("\n")
 
-    fn add(inout self, edge: RC[Edge]):
+    fn __init__(inout self):
+        self.edges = Dict[Int, List[Arc[Edge]]]()
+    
+    fn add(inout self, owned edge: Arc[Edge]):
         var edges_opt = self.edges.get(edge[].start)
         if edges_opt:
             var edges = edges_opt.value()
-            edges[].append(edge)
+            edges.append(edge)
             self.edges[edge[].start] = edges # this shall be optimised in a future Mojo release
         else:
             self.edges[edge[].start] = List(edge)
@@ -110,7 +107,7 @@ struct Chart(Stringable):
             level += 1
 
     fn _parse(inout self, grammar: Grammar, level: Int) -> Bool:
-        var newEdges = List[RC[Edge]]()
+        var newEdges = List[Arc[Edge]]()
         for edges in self.edges.values():
             for edge1 in edges[]:
                 for rule in grammar.rules:
@@ -119,19 +116,22 @@ struct Chart(Stringable):
                             if edge1[][].category == rule[].rhs[0]:
                                 var avm_opt = rule[].avmfn(List(edge1[][].avm))
                                 if avm_opt:
+                                    edge1[][].used = True
                                     var avm = avm_opt.value()
-                                    var edge = Edge(edge1[][].start, edge1[][].end, rule[].lhs, avm[], level + 1, List(edge1[]))
+                                    var edge = Edge(edge1[][].start, edge1[][].end, rule[].lhs, avm, level + 1, False, List(edge1[]))
                                     newEdges.append(edge)
                     elif rule[].rhs.size == 2:
                         var edges_opt = self.edges.get(edge1[][].end)
                         if edges_opt:
-                            for edge2 in edges_opt.value()[]:
+                            for edge2 in edges_opt.value():
                                 if edge1[][].level == level or edge2[][].level == level:
                                     if edge1[][].category == rule[].rhs[0] and edge2[][].category == rule[].rhs[1]:
                                         var avm_opt = rule[].avmfn(List(edge1[][].avm, edge2[][].avm))
                                         if avm_opt:
+                                            edge1[][].used = True
+                                            edge2[][].used = True
                                             var avm = avm_opt.value()
-                                            var edge = Edge(edge1[][].start, edge2[][].end, rule[].lhs, avm[], level + 1, List(edge1[], edge2[]))
+                                            var edge = Edge(edge1[][].start, edge2[][].end, rule[].lhs, avm, level + 1, False, List(edge1[], edge2[]))
                                             newEdges.append(edge)
                     else:
                         print("rule not supported: " + str(rule[]))
