@@ -2,10 +2,12 @@ trait Reader(Movable):
     fn read_bytes(inout self, n: Int) raises -> List[UInt8]:
         ...
 
+alias buffer_size = 1_024
+
 fn read_all[T: Reader](inout reader: T) raises -> List[UInt8]:
     var list = List[UInt8]()
     while True:
-        var list2 = reader.read_bytes(1_024)
+        var list2 = reader.read_bytes(buffer_size)
         if len(list2) == 0:
             return list
         list.extend(list2)
@@ -25,13 +27,14 @@ struct BufferedReader[T: Reader](Reader):
     fn read_bytes(inout self, n: Int) raises -> List[UInt8]:
         if len(self.buffer) > 0:
             if len(self.buffer) <= n:
-                var r = self.buffer
+                var r = self.buffer^
                 self.buffer = List[UInt8]()
                 return r
             var r = self.buffer[:n]
             self.buffer = self.buffer[n:]
             return r
-        return self.reader.read_bytes(n)
+        self.buffer = self.reader.read_bytes(n if n > buffer_size else buffer_size)
+        return self.read_bytes(n)
 
     fn read_until(inout self, ch: UInt8) raises -> Tuple[List[UInt8], Bool]:
         var list = List[UInt8]()
@@ -41,10 +44,10 @@ struct BufferedReader[T: Reader](Reader):
                     var r = self.buffer[:i+1]
                     self.buffer = self.buffer[i+1:]
                     return r, True
-            list.extend(self.buffer)
+            list.extend(self.buffer^)
             self.buffer = List[UInt8]()
         while True:
-            var list2 = self.reader.read_bytes(1_024)
+            var list2 = self.reader.read_bytes(buffer_size)
             if len(list2) == 0:
                 return list, False
             for i in range(len(list2)):
