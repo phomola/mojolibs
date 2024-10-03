@@ -1,4 +1,5 @@
-from textkit import string_from_bytes
+from textkit import string_from_bytes, stringref_from_bytes
+from utils import StringRef
 
 struct StringBuilder(Writer, Stringable):
     var buffer: List[UInt8]
@@ -12,5 +13,11 @@ struct StringBuilder(Writer, Stringable):
     fn write_bytes(inout self, list: List[UInt8]) raises:
         self.buffer.extend(list)
 
+    fn as_string_ref(self) -> StringRef:
+        return stringref_from_bytes(self.buffer)
+
     fn __str__(self) -> String:
         return string_from_bytes(self.buffer)
+    
+    fn keep_alive(self):
+        pass
