@@ -29,11 +29,14 @@ struct BufferedReader[T: Reader](Reader):
             if len(self.buffer) <= n:
                 var r = self.buffer^
                 self.buffer = List[UInt8]()
+                r.extend(self.read_bytes(n - len(r)))
                 return r
             var r = self.buffer[:n]
             self.buffer = self.buffer[n:]
             return r
         self.buffer = self.reader.read_bytes(n if n > buffer_size else buffer_size)
+        if len(self.buffer) == 0:
+            return List[UInt8]()
         return self.read_bytes(n)
 
     fn read_until(inout self, ch: UInt8) raises -> Tuple[List[UInt8], Bool]:
