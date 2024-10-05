@@ -9,7 +9,6 @@ fn main():
         var value = js_evaluate(ctx, """
             ({"a": x, "b": y})
         """)
-        value.protect(ctx)
         if value.is_string(ctx):
             var string = value.to_string(ctx)
             print("got string:", string)
@@ -24,6 +23,5 @@ fn main():
             print("c =", object.get_property(ctx, "c").as_string(ctx))
         else:
             print("got value of unknown type")
-        value.unprotect(ctx)
     except e:
         print(e)        
