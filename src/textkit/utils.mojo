@@ -5,7 +5,13 @@ from memory import UnsafePointer, memcpy
 fn string_from_bytes(b: List[UInt8]) -> String:
     return StringRef(b.data, len(b))
 
+fn stringref_from_bytes(b: List[UInt8]) -> StringRef:
+    return StringRef(b.data, len(b))
+
 fn string_from_bytes(b: List[UInt8], l: Int) -> String:
+    return StringRef(b.data, l)
+
+fn stringref_from_bytes(b: List[UInt8], l: Int) -> StringRef:
     return StringRef(b.data, l)
 
 fn bytes_from_string(s: String) -> List[UInt8]:

@@ -1,4 +1,5 @@
 from textkit import bytes_from_string, string_from_bytes, tokenise, Token, word, eof
+from ioutils import Writer, write_string, StringBuilder
 from utils import Variant
 from collections import Dict, Optional
 from sys import exit
@@ -46,19 +47,23 @@ struct Template:
     var segments: List[Variant[String, FieldExpr, WithExpr, RangeExpr, EndExpr]]
 
     fn execute(self, data: Object) raises -> String:
-        var result: String = ""
+        var sb = StringBuilder()
+        self.execute(data, sb)
+        return str(sb)
+
+    fn execute[T: Writer](self, data: Object, inout writer: T) raises:
         for segment in self.segments:
             if segment[].isa[String]():
-                result += segment[][String]
+                write_string(writer, segment[][String])
             elif segment[].isa[FieldExpr]():
                 var field = segment[][FieldExpr].field
                 var value_opt = data.dict.get(field)
                 if value_opt:
                     var value = value_opt.value()
                     if value.isa[String]():
-                        result += value[String]
+                        write_string(writer, value[String])
                     elif value.isa[Int]():
-                        result += str(value[Int])
+                        write_string(writer, str(value[Int]))
                     else:
                         raise Error("field not string: " + field)
                 else:
@@ -69,8 +74,7 @@ struct Template:
                 if value_opt:
                     var value = value_opt.value()
                     if value.isa[Object]():
-                        var result2 = segment[][WithExpr].template.value().execute(value[Object])
-                        result += result2
+                        segment[][WithExpr].template.value().execute(value[Object], writer)
                     else:
                         raise Error("field not object: " + field)
             elif segment[].isa[RangeExpr]():
@@ -81,13 +85,11 @@ struct Template:
                     if value.isa[List[Object]]():
                         var template = segment[][RangeExpr].template.value()
                         for object in value[List[Object]]:
-                            var result2 = template.execute(object[])
-                            result += result2
+                            template.execute(object[], writer)
                     else:
                         raise Error("field not list of objects: " + field)
             else:
                 raise Error("unknown expression type")
-        return result
 
 fn must_parse_template(code: String) -> Template:
     return must_parse_template(bytes_from_string(code))
