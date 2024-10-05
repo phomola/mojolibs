@@ -2,6 +2,7 @@ from sys import ffi
 from memory import memcpy, UnsafePointer
 from os import getenv
 from utils import StringRef
+from ioutils import Writer
 
 alias HttpCtx = UnsafePointer[NoneType]
 
@@ -25,6 +26,16 @@ struct HttpRequest:
 
     fn check(self):
         http.check(self.ctx)
+
+    fn response_writer(self) -> ResponseWriter:
+        return ResponseWriter(self)
+
+@value
+struct ResponseWriter(Writer):
+    var req: HttpRequest
+
+    fn write_bytes(inout self, list: List[UInt8]) raises:
+        self.req.write_response(list)
 
 @value
 @register_passable("trivial")
