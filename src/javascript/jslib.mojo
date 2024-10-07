@@ -1,8 +1,8 @@
-from sys import DLHandle, os_is_macos
+from sys import DLHandle, os_is_macos, stderr, exit
 from memory import UnsafePointer
 
 alias macosDylib = "/System/Library/Frameworks/JavaScriptCore.framework/JavaScriptCore"
-alias linuxSo = "libjavascriptcore.so"
+alias linuxSo = "libjavascriptcoregtk-6.0.so"
 
 var c_null = UnsafePointer[NoneType]()
 var JS = _JS()
@@ -40,6 +40,9 @@ struct _JS:
             self.lib = DLHandle(macosDylib)
         else:
             self.lib = DLHandle(linuxSo)
+        if not self.lib:
+            print("dynamic library for JS not found", file=stderr)
+            exit(1)
         self.js_global_context_create = self.lib.get_function[fn(UnsafePointer[NoneType]) -> UnsafePointer[NoneType]]("JSGlobalContextCreate")
         self.js_global_context_retain = self.lib.get_function[fn(UnsafePointer[NoneType]) -> UnsafePointer[NoneType]]("JSGlobalContextRetain")
         self.js_global_context_release = self.lib.get_function[fn(UnsafePointer[NoneType]) -> None]("JSGlobalContextRelease")
