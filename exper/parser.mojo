@@ -25,11 +25,11 @@ fn main():
             print("file not found:", chart_file, file=stderr)
             exit(1)
         var chart = get_chart(p.read_bytes())
-        print("initial chart")
+        print("initial chart:")
         print(chart)
         
         chart.parse(grammar)
-        print("final chart")
+        print("final chart:")
         print(chart)
     except e:
         print(e, file=stderr)
