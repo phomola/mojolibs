@@ -49,6 +49,9 @@ struct JSValue:
     fn unprotect(self, ctx: JSContext):
         JS.js_value_unprotect(ctx.ptr, self.ptr)
 
+    fn keep_alive(self):
+        pass
+
     fn is_null(self, ctx: JSContext) -> Bool:
         return JS.js_value_is_null(ctx.ptr, self.ptr)
 
