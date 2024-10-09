@@ -10,18 +10,18 @@ alias right_bracket = ord("}")
 @value
 struct Attr:
     var key: String
-    var value: Variant[String, Int, Object, List[Object]]
+    var value: Variant[String, Int, Float64, Object, List[Object]]
 
 @value
 struct Object:
-    var dict: Dict[String, Variant[String, Int, Object, List[Object]]]
+    var dict: Dict[String, Variant[String, Int, Float64, Object, List[Object]]]
 
     fn __init__(inout self, *attrs: Attr):
-        self.dict = Dict[String, Variant[String, Int, Object, List[Object]]]()
+        self.dict = Dict[String, Variant[String, Int, Float64, Object, List[Object]]]()
         for attr in attrs:
             self.dict[attr[].key] = attr[].value
 
-    fn set(inout self, name: String, value: Variant[String, Int, Object, List[Object]]):
+    fn set(inout self, name: String, value: Variant[String, Int, Float64, Object, List[Object]]):
         self.dict[name] = value
 
 @value
@@ -64,8 +64,10 @@ struct Template:
                         write_string(writer, value[String])
                     elif value.isa[Int]():
                         write_string(writer, str(value[Int]))
+                    elif value.isa[Float64]():
+                        write_string(writer, str(value[Float64]))
                     else:
-                        raise Error("field not string: " + field)
+                        raise Error("field not string or integer or float: " + field)
                 else:
                     raise Error("field not found: " + field)
             elif segment[].isa[WithExpr]():
