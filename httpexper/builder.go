@@ -11,7 +11,6 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
-	"strconv"
 	"strings"
 	"time"
 
@@ -56,7 +55,7 @@ COPY . .
 ENV HTTP_LIB=./libhttpsrv.so
 CMD ["./app_` + id + `"]
 `); err != nil {
-		return erros.Join(err, f.Close())
+		return errors.Join(err, f.Close())
 	}
 	if err := f.Close(); err != nil {
 		return err
@@ -105,20 +104,25 @@ func run(id, dir string, port int, lib string) error {
 		slog.Info("docker remove failed")
 	}
 	cmd = exec.Command("docker", "run", "-dp", fmt.Sprintf("%d:%d", port, port), "-e", fmt.Sprintf("PORT=%d", port), "--name=mojoapp-"+id, "--memory=10m", "--cpus=0.1", "mojoapps/"+id)
-	var errSb strings.Builder
+	var outSb, errSb strings.Builder
+	cmd.Stdout = &outSb
 	cmd.Stderr = &errSb
 	if err := cmd.Start(); err != nil {
 		slog.Info("docker run failed")
-	}
+		return err
+	} else {
 	go func() {
 		if err := cmd.Wait(); err != nil {
 			slog.Error("app wait failed", slog.String("id", id), slog.Any("error", err))
 			fmt.Println(errSb.String())
 		} else {
 			slog.Info("app exited", slog.String("id", id))
+			fmt.Fprintln(os.Stderr, "stdout:", strings.TrimSpace(outSb.String()))
+			fmt.Fprintln(os.Stderr, "stderr:", strings.TrimSpace(errSb.String()))
 		}
 	}()
 	return nil
+	}
 }
 
 type buildAndRunRequest struct {
