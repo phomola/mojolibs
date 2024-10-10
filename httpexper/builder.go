@@ -53,6 +53,7 @@ FROM ubuntu:latest
 WORKDIR /app
 COPY . .
 ENV HTTP_LIB=./libhttpsrv.so
+ENV LD_LIBRARY_PATH=.
 CMD ["./app_` + id + `"]
 `); err != nil {
 		return errors.Join(err, f.Close())
@@ -68,6 +69,11 @@ CMD ["./app_` + id + `"]
 	}
 	if err := os.Chmod(dir+"_"+id+"/app_"+id, 0755); err != nil {
 		return err
+	}
+	for _, file := range []string{"libKGENCompilerRTShared.so", "libAsyncRTMojoBindings.so", "libAsyncRTRuntimeGlobals.so", "libCUDAGlobals.so", "libMSupportGlobals.so"} {
+		if err := copyFile("/home/mojoapps/mojoapps/.magic/envs/default/lib/" + file, dir+"_"+id+"/"+file); err != nil {
+			return err
+		}
 	}
 	cmd = exec.CommandContext(ctx, "docker", "build", "-t", "mojoapps/"+id, ".")
 	cmd.Dir = dir + "_" + id
