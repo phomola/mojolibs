@@ -20,6 +20,9 @@ struct JSGlobalContext:
         var js_object = JS.js_context_get_global_object(self.ptr)
         return JSObject(js_object)
 
+    fn keep_alive(self):
+        pass
+
 struct JSContext:
     var ptr: UnsafePointer[NoneType]
 
