@@ -28,5 +28,6 @@ struct InternedString(EqualityComparable):
     fn __ne__(self, istr: Self) -> Bool:
         return not (self == istr)
 
-    fn __getitem__(self) -> ref [__origin_of(self.ptr)] String:
+    #fn __getitem__(self) -> ref [__origin_of(self.ptr)] String:
+    fn __getitem__(self) -> String:
         return self.ptr[]
