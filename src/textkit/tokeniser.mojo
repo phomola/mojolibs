@@ -148,7 +148,7 @@ fn tokenise(text: List[UInt8], keep_eol: Bool = False, word_chars: String = "") 
                 col1 = col
                 col += 1
             else:
-                tokens.append(Token(symbol, string_from_bytes(text[i]), line, col))
+                tokens.append(Token(symbol, string_from_bytes(r), line, col))
                 i += 1
                 col += 1
     if state == word:
