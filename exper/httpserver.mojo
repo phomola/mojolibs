@@ -70,7 +70,8 @@ fn handler(req: UnsafePointer[NoneType], arg: UnsafePointer[NoneType]):
     uri = libevent.evhttp_request_get_uri(req)
     print("request:", uri)
     outbuf = libevent.evhttp_request_get_output_buffer(req)
-    if not libevent.evbuffer_add(outbuf, "Hello, world!"):
+    output = "Hello, world!"
+    if not libevent.evbuffer_add(outbuf, output):
         print("failed to write to buffer")
     libevent.evhttp_send_reply(req, 200, "", outbuf)
 
