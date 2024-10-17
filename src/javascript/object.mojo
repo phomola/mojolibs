@@ -20,6 +20,16 @@ fn js_func_cb(ctx: UnsafePointer[NoneType], f: UnsafePointer[NoneType], this: Un
 struct JSObject:
     var ptr: UnsafePointer[NoneType]
 
+    @staticmethod
+    fn promise(ctx: JSContext) raises -> Tuple[JSObject, JSObject, JSObject]:
+        var resolve = UnsafePointer[NoneType]()
+        var reject = UnsafePointer[NoneType]()
+        var ex = UnsafePointer[NoneType]()
+        var promise = JS.js_object_make_deferred_promise(ctx.ptr, UnsafePointer.address_of(resolve), UnsafePointer.address_of(reject), UnsafePointer.address_of(ex))
+        if not promise:
+            raise Error("failed to create promise: " + JSObject(ex).get_property(ctx, "message").as_string(ctx))
+        return JSObject(promise), JSObject(resolve), JSObject(reject)
+
     fn __init__(inout self, ptr: UnsafePointer[NoneType]):
         self.ptr = ptr
 
@@ -34,6 +44,11 @@ struct JSObject:
             funcs[int(jsf)] = f
             self.ptr = jsf
 
+    fn __init__(inout self, ctx: JSContext, f: fn(JSContext, JSObject, List[JSValue]) -> JSValue):
+        var jsf = JS.js_object_make_function_with_callback(ctx.ptr, UnsafePointer[NoneType](), js_func_cb)
+        funcs[int(jsf)] = f
+        self.ptr = jsf
+
     fn __copyinit__(inout self, other: JSObject):
         self.ptr = other.ptr
 
@@ -42,6 +57,9 @@ struct JSObject:
 
     fn __del__(owned self):
         pass
+
+    fn is_function(self, ctx: JSContext) -> Bool:
+        return JS.js_object_is_function(ctx.ptr, self.ptr)
 
     fn has_property(self, ctx: JSContext, name: String) -> Bool:
         with CStr(name) as c_name:
@@ -65,34 +83,47 @@ struct JSObject:
 
     fn call(self, ctx: JSContext) raises -> JSValue:
         var args = UnsafePointer[UnsafePointer[NoneType]]()
-        var value = JS.js_object_call_as_function(ctx.ptr, self.ptr, c_null, 0, args, c_null)
+        var ex = UnsafePointer[NoneType]()
+        var value = JS.js_object_call_as_function(ctx.ptr, self.ptr, c_null, 0, args, UnsafePointer.address_of(ex))
         if not value:
-            raise Error("failed to call object as function")
+            raise Error("failed to call object as function: " + JSObject(ex).get_property(ctx, "message").as_string(ctx))
         return JSValue(value)
 
     fn call(self, ctx: JSContext, arg1: JSValue) raises -> JSValue:
-        var value = JS.js_object_call_as_function(ctx.ptr, self.ptr, c_null, 1, UnsafePointer.address_of(arg1.ptr), c_null)
+        var ex = UnsafePointer[NoneType]()
+        var value = JS.js_object_call_as_function(ctx.ptr, self.ptr, c_null, 1, UnsafePointer.address_of(arg1.ptr), UnsafePointer.address_of(ex))
         if not value:
-            raise Error("failed to call object as function")
+            raise Error("failed to call object as function: " + JSObject(ex).get_property(ctx, "message").as_string(ctx))
         return JSValue(value)
 
     fn call(self, ctx: JSContext, arg1: JSValue, arg2: JSValue) raises -> JSValue:
         var args = InlineArray[size=2](arg1.ptr, arg2.ptr)
-        var value = JS.js_object_call_as_function(ctx.ptr, self.ptr, c_null, 2, args.unsafe_ptr(), c_null)
+        var ex = UnsafePointer[NoneType]()
+        var value = JS.js_object_call_as_function(ctx.ptr, self.ptr, c_null, 2, args.unsafe_ptr(), UnsafePointer.address_of(ex))
         if not value:
-            raise Error("failed to call object as function")
+            raise Error("failed to call object as function: " + JSObject(ex).get_property(ctx, "message").as_string(ctx))
         return JSValue(value)
 
     fn call(self, ctx: JSContext, arg1: JSValue, arg2: JSValue, arg3: JSValue) raises -> JSValue:
         var args = InlineArray[size=3](arg1.ptr, arg2.ptr, arg3.ptr)
-        var value = JS.js_object_call_as_function(ctx.ptr, self.ptr, c_null, 3, args.unsafe_ptr(), c_null)
+        var ex = UnsafePointer[NoneType]()
+        var value = JS.js_object_call_as_function(ctx.ptr, self.ptr, c_null, 3, args.unsafe_ptr(), UnsafePointer.address_of(ex))
         if not value:
-            raise Error("failed to call object as function")
+            raise Error("failed to call object as function: " + JSObject(ex).get_property(ctx, "message").as_string(ctx))
         return JSValue(value)
 
     fn call(self, ctx: JSContext, arg1: JSValue, arg2: JSValue, arg3: JSValue, arg4: JSValue) raises -> JSValue:
         var args = InlineArray[size=4](arg1.ptr, arg2.ptr, arg3.ptr, arg4.ptr)
-        var value = JS.js_object_call_as_function(ctx.ptr, self.ptr, c_null, 4, args.unsafe_ptr(), c_null)
+        var ex = UnsafePointer[NoneType]()
+        var value = JS.js_object_call_as_function(ctx.ptr, self.ptr, c_null, 4, args.unsafe_ptr(), UnsafePointer.address_of(ex))
         if not value:
-            raise Error("failed to call object as function")
+            raise Error("failed to call object as function: " + JSObject(ex).get_property(ctx, "message").as_string(ctx))
         return JSValue(value)
+
+    fn method_call(self, ctx: JSContext, this: JSObject, arg1: JSValue) raises -> JSValue:
+        var ex = UnsafePointer[NoneType]()
+        var value = JS.js_object_call_as_function(ctx.ptr, self.ptr, this.ptr, 1, UnsafePointer.address_of(arg1.ptr), UnsafePointer.address_of(ex))
+        if not value:
+            raise Error("failed to call object as function: " + JSObject(ex).get_property(ctx, "message").as_string(ctx))
+        return JSValue(value)
+
