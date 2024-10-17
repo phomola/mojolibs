@@ -17,7 +17,7 @@ struct _JS:
     var js_string_release: fn(UnsafePointer[NoneType]) -> None
     var js_string_get_maximum_utf8_cstring_size: fn(UnsafePointer[NoneType]) -> Int
     var js_string_get_utf8_cstring: fn(UnsafePointer[NoneType], UnsafePointer[UInt8], Int) -> Int
-    var js_evaluate_script: fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType], Int, UnsafePointer[NoneType]) -> UnsafePointer[NoneType]
+    var js_evaluate_script: fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType], Int, UnsafePointer[UnsafePointer[NoneType]]) -> UnsafePointer[NoneType]
     var js_value_is_null: fn(UnsafePointer[NoneType], UnsafePointer[NoneType]) -> Bool
     var js_value_is_undefined: fn(UnsafePointer[NoneType], UnsafePointer[NoneType]) -> Bool
     var js_value_is_string: fn(UnsafePointer[NoneType], UnsafePointer[NoneType]) -> Bool
@@ -28,13 +28,21 @@ struct _JS:
     var js_value_to_object: fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType]) -> UnsafePointer[NoneType]
     var js_value_make_number: fn(UnsafePointer[NoneType], Float64) -> UnsafePointer[NoneType]
     var js_value_make_string: fn(UnsafePointer[NoneType], UnsafePointer[NoneType]) -> UnsafePointer[NoneType]
+    var js_value_make_null: fn(UnsafePointer[NoneType]) -> UnsafePointer[NoneType]
+    var js_value_make_undefined: fn(UnsafePointer[NoneType]) -> UnsafePointer[NoneType]
     var js_value_protect: fn(UnsafePointer[NoneType], UnsafePointer[NoneType]) -> None
     var js_value_unprotect: fn(UnsafePointer[NoneType], UnsafePointer[NoneType]) -> None
     var js_object_has_property: fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType]) -> Bool
     var js_object_get_property: fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType]) -> UnsafePointer[NoneType]
     var js_object_set_property: fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType], Int, UnsafePointer[NoneType]) -> None
     var js_context_get_global_object: fn(UnsafePointer[NoneType]) -> UnsafePointer[NoneType]
-    var js_object_call_as_function: fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType], Int, UnsafePointer[UnsafePointer[NoneType]], UnsafePointer[NoneType]) -> UnsafePointer[NoneType]
+    var js_object_call_as_function: fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType], Int, UnsafePointer[UnsafePointer[NoneType]], UnsafePointer[UnsafePointer[NoneType]]) -> UnsafePointer[NoneType]
+    var js_object_make_function_with_callback: fn(UnsafePointer[NoneType], UnsafePointer[NoneType], fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType], Int, UnsafePointer[UnsafePointer[NoneType]], UnsafePointer[UnsafePointer[NoneType]]) -> UnsafePointer[NoneType]) -> UnsafePointer[NoneType]
+    var js_object_make_deferred_promise: fn(UnsafePointer[NoneType], UnsafePointer[UnsafePointer[NoneType]], UnsafePointer[UnsafePointer[NoneType]], UnsafePointer[UnsafePointer[NoneType]]) -> UnsafePointer[NoneType]
+    var js_value_create_json_string: fn(UnsafePointer[NoneType], UnsafePointer[NoneType], Int, UnsafePointer[UnsafePointer[NoneType]]) -> UnsafePointer[NoneType]
+    var js_object_is_function: fn(UnsafePointer[NoneType], UnsafePointer[NoneType]) -> Bool
+    var js_value_make_from_json_string: fn(UnsafePointer[NoneType], UnsafePointer[NoneType]) -> UnsafePointer[NoneType]
+    var js_object_make: fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType]) -> UnsafePointer[NoneType]
 
     fn __init__(inout self):
         if os_is_macos():
@@ -52,7 +60,7 @@ struct _JS:
         self.js_string_release = self.lib.get_function[fn(UnsafePointer[NoneType]) -> None]("JSStringRelease")
         self.js_string_get_maximum_utf8_cstring_size = self.lib.get_function[fn(UnsafePointer[NoneType]) -> Int]("JSStringGetMaximumUTF8CStringSize")
         self.js_string_get_utf8_cstring = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[UInt8], Int) -> Int]("JSStringGetUTF8CString")
-        self.js_evaluate_script = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType], Int, UnsafePointer[NoneType]) -> UnsafePointer[NoneType]]("JSEvaluateScript")
+        self.js_evaluate_script = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType], Int, UnsafePointer[UnsafePointer[NoneType]]) -> UnsafePointer[NoneType]]("JSEvaluateScript")
         self.js_value_is_null = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType]) -> Bool]("JSValueIsNull")
         self.js_value_is_undefined = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType]) -> Bool]("JSValueIsUndefined")
         self.js_value_is_string = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType]) -> Bool]("JSValueIsString")
@@ -63,10 +71,18 @@ struct _JS:
         self.js_value_to_object = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType]) -> UnsafePointer[NoneType]]("JSValueToObject")
         self.js_value_make_number = self.lib.get_function[fn(UnsafePointer[NoneType], Float64) -> UnsafePointer[NoneType]]("JSValueMakeNumber")
         self.js_value_make_string = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType]) -> UnsafePointer[NoneType]]("JSValueMakeString")
+        self.js_value_make_null = self.lib.get_function[fn(UnsafePointer[NoneType]) -> UnsafePointer[NoneType]]("JSValueMakeNull")
+        self.js_value_make_undefined = self.lib.get_function[fn(UnsafePointer[NoneType]) -> UnsafePointer[NoneType]]("JSValueMakeUndefined")
         self.js_value_protect = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType]) -> None]("JSValueProtect")
         self.js_value_unprotect = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType]) -> None]("JSValueUnprotect")
         self.js_object_has_property = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType]) -> Bool]("JSObjectHasProperty")
         self.js_object_get_property = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType]) -> UnsafePointer[NoneType]]("JSObjectGetProperty")
         self.js_object_set_property = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType], Int, UnsafePointer[NoneType]) -> None]("JSObjectSetProperty")
         self.js_context_get_global_object = self.lib.get_function[fn(UnsafePointer[NoneType]) -> UnsafePointer[NoneType]]("JSContextGetGlobalObject")
-        self.js_object_call_as_function = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType], Int, UnsafePointer[UnsafePointer[NoneType]], UnsafePointer[NoneType]) -> UnsafePointer[NoneType]]("JSObjectCallAsFunction")
+        self.js_object_call_as_function = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType], Int, UnsafePointer[UnsafePointer[NoneType]], UnsafePointer[UnsafePointer[NoneType]]) -> UnsafePointer[NoneType]]("JSObjectCallAsFunction")
+        self.js_object_make_function_with_callback = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType], fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType], Int, UnsafePointer[UnsafePointer[NoneType]], UnsafePointer[UnsafePointer[NoneType]]) -> UnsafePointer[NoneType]) -> UnsafePointer[NoneType]]("JSObjectMakeFunctionWithCallback")
+        self.js_object_make_deferred_promise = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[UnsafePointer[NoneType]], UnsafePointer[UnsafePointer[NoneType]], UnsafePointer[UnsafePointer[NoneType]]) -> UnsafePointer[NoneType]]("JSObjectMakeDeferredPromise")
+        self.js_value_create_json_string = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType], Int, UnsafePointer[UnsafePointer[NoneType]]) -> UnsafePointer[NoneType]]("JSValueCreateJSONString")
+        self.js_object_is_function = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType]) -> Bool]("JSObjectIsFunction")
+        self.js_value_make_from_json_string = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType]) -> UnsafePointer[NoneType]]("JSValueMakeFromJSONString")
+        self.js_object_make = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType]) -> UnsafePointer[NoneType]]("JSObjectMake")
