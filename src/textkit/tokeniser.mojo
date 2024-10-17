@@ -3,12 +3,13 @@ from collections import List, Dict, Optional
 from textkit.utils import string_from_bytes, bytes_from_string
 from memory import UnsafePointer
 
-alias word   = 1
-alias number = 2
-alias string = 3
-alias symbol = 4
-alias eol    = 5
-alias eof    = 6
+alias word    = 1
+alias integer = 2
+alias real    = 3
+alias string  = 4
+alias symbol  = 5
+alias eol     = 6
+alias eof     = 7
 
 alias newline = ord("\n")
 alias quote = ord("\"")
@@ -16,6 +17,7 @@ alias backslash = ord("\\")
 alias space = ord(" ")
 alias linefeed = ord("\r")
 alias tab = ord("\t")
+alias dot = ord(".")
 alias zero = ord("0")
 alias nine = ord("9")
 alias char_A = ord("A")
@@ -39,24 +41,31 @@ struct Token:
     var column: Int
     var has_esc: Bool
 
+@always_inline
 fn is_white_char(s: String) -> Bool:
     return s == " " or s == "\r" or s == "\n" or s == "\t"
 
+@always_inline
 fn is_alpha(s: String) -> Bool:
     return s >= "A" and s <= "Z" or s >= "a" and s <= "z"
 
+@always_inline
 fn is_number(s: String) -> Bool:
     return s >= "0" and s <= "9"
 
+@always_inline
 fn is_white_char(c: UInt8) -> Bool:
     return c == space or c == linefeed or c == newline or c == tab
 
+@always_inline
 fn is_alpha(c: UInt8) -> Bool:
     return c >= char_A and c <= char_Z or c >= char_a and c <= char_z
 
+@always_inline
 fn is_number(c: UInt8) -> Bool:
     return c >= zero and c <= nine
 
+@always_inline
 fn contains_char(list: List[UInt8], char: UInt8) -> Bool:
     for el in list:
         if el[] == char:
@@ -78,9 +87,11 @@ struct Tokeniser:
         self.keep_eol = keep_eol
         self.word_chars = word_chars
 
+    @always_inline
     fn form(self, token: Token) -> StringRef:
         return StringRef(self.input.unsafe_ptr() + token.span.start, token.span.len)
 
+    @always_inline
     fn unquoted_form(self, token: Token) -> String:
         form = self.form(token)
         return form if not token.has_esc else unquote(form)
@@ -96,6 +107,7 @@ struct Tokeniser:
         var start = 0
         var esc = False
         var has_esc = False
+        var start_float = -1
         var word_chars_bytes = bytes_from_string(self.word_chars)
         var text = self.input
         while True:
@@ -122,12 +134,16 @@ struct Tokeniser:
                 else:
                     tokens.append(Token(word, Span(start, i-start), line1, col1, False))
                     state = 0
-            elif state == number:
+            elif state == integer:
                 if is_number(r):
                     i += 1
                     col += 1
                 else:
-                    tokens.append(Token(number, Span(start, i-start), line1, col1, False))
+                    if start_float != -1:
+                        tokens[-1] = Token(real, Span(start, i-start_float), line1, col1, False)
+                        start_float = -1
+                    else:
+                        tokens.append(Token(integer, Span(start, i-start), line1, col1, False))
                     state = 0
             elif state == string:
                 if r == quote and not esc:
@@ -157,7 +173,7 @@ struct Tokeniser:
                     col1 = col
                     col += 1
                 elif is_number(r):
-                    state = number
+                    state = integer
                     start = i
                     i += 1
                     line1 = line
@@ -172,13 +188,20 @@ struct Tokeniser:
                     col1 = col
                     col += 1
                 else:
-                    tokens.append(Token(symbol, Span(i, 1), line, col, False))
+                    if r == dot and start_float == -1 and tokens[-1].type == integer:
+                        if i+1 == len(text) or not is_number(text[i+1]):
+                            tokens[-1] = Token(real, Span(start, i-start+1), line1, col1, False)
+                        else:
+                            start_float = start
+                            state = integer
+                    else:
+                        tokens.append(Token(symbol, Span(i, 1), line, col, False))
                     i += 1
                     col += 1
         if state == word:
             tokens.append(Token(word, Span(start, i-start), line1, col1, False))
-        elif state == number:
-            tokens.append(Token(number, Span(start, i-start), line1, col1, False))
+        elif state == integer:
+            tokens.append(Token(integer, Span(start, i-start), line1, col1, False))
         elif state == string:
             tokens.append(Token(string, Span(start, i-start), line1, col1, has_esc))
         tokens.append(Token(eof, Span(i, 0), line, col, False))
