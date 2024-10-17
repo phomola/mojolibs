@@ -1,7 +1,21 @@
 from memory import UnsafePointer
 from textkit import CStr
 from .jslib import JS, c_null
-from collections import InlineArray
+from collections import InlineArray, Dict
+
+var funcs = Dict[Int, fn(JSContext, JSObject, List[JSValue]) -> JSValue]()
+
+fn js_func_cb(ctx: UnsafePointer[NoneType], f: UnsafePointer[NoneType], this: UnsafePointer[NoneType], argcount: Int, js_args: UnsafePointer[UnsafePointer[NoneType]], ex: UnsafePointer[NoneType]) -> UnsafePointer[NoneType]:
+    var f_opt = funcs.get(int(f))
+    if f_opt:
+        var f = f_opt.value()
+        var args = List[JSValue](capacity=argcount)
+        for i in range(argcount):
+            args.append(JSValue(js_args[i]))
+        var value = f(JSContext(ctx), JSObject(this), args)
+        return value.ptr
+    else:
+        return UnsafePointer[NoneType]()
 
 struct JSObject:
     var ptr: UnsafePointer[NoneType]
@@ -11,6 +25,14 @@ struct JSObject:
 
     fn __init__(inout self, value: JSValue):
         self.ptr = value.ptr
+
+    fn __init__(inout self, ctx: JSContext, name: String, f: fn(JSContext, JSObject, List[JSValue]) -> JSValue):
+        with CStr(name) as c_name:
+            var js_name = JS.js_string_create_with_utf8_string(c_name)
+            var jsf = JS.js_object_make_function_with_callback(ctx.ptr, js_name, js_func_cb)
+            JS.js_string_release(js_name)
+            funcs[int(jsf)] = f
+            self.ptr = jsf
 
     fn __copyinit__(inout self, other: JSObject):
         self.ptr = other.ptr

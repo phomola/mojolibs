@@ -6,6 +6,14 @@ from textkit import CStr
 struct JSValue:
     var ptr: UnsafePointer[NoneType]
 
+    @staticmethod
+    fn undefined(ctx: JSContext) -> JSValue:
+        return JSValue(JS.js_value_make_undefined(ctx.ptr))
+
+    @staticmethod
+    fn null(ctx: JSContext) -> JSValue:
+        return JSValue(JS.js_value_make_null(ctx.ptr))
+
     fn __init__(inout self, ptr: UnsafePointer[NoneType]):
         self.ptr = ptr
 
