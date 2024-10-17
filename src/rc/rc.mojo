@@ -15,8 +15,7 @@ struct PointerCount[T: Movable]:
         self.count -= 1
         return self.count == 0
 
-#struct RC[T: Movable]:
-struct RC[T: CollectionElement]:
+struct RC[T: Movable]:
     var pc: UnsafePointer[PointerCount[T]]
 
     fn __init__(inout self, owned val: T):
@@ -38,12 +37,11 @@ struct RC[T: CollectionElement]:
     fn refcount(self) -> Int64:
         return self.pc[].count
 
-    #fn __getitem__(self) -> ref[__origin_of(self)] T:
-    fn __getitem__(self) -> T:
+    fn __getitem__(self) -> ref[__origin_of(self)] T:
         return self.pc[].val
 
-    #fn mutref(inout self) -> ref[__origin_of(self)] T:
-    #    return self.pc[].val
+    fn mutref(inout self) -> ref[__origin_of(self)] T:
+       return self.pc[].val
 
     fn set(inout self, owned val: T):
         self.pc[].val = val^
