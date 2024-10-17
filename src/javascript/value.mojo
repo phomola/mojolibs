@@ -51,6 +51,11 @@ struct JSValue:
             return "object"
         return "???"
 
+    fn as_json_string(self, ctx: JSContext) raises -> String:
+        var ex = UnsafePointer[NoneType]()
+        var js_string = JS.js_value_create_json_string(ctx.ptr, self.ptr, 0, UnsafePointer.address_of(ex))
+        return str(JSString(js_string))
+
     fn protect(self, ctx: JSContext):
         JS.js_value_protect(ctx.ptr, self.ptr)
 
