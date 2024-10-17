@@ -136,10 +136,10 @@ fn _parse_json_value(tokeniser: Tokeniser, tokens: List[Token], inout i: Int) ra
         return tokeniser.unquoted_form(t)
     if t.type == integer:
         i += 1
-        return atol(tokeniser.form(t)) #convert_json_number(_parse_number(tokeniser, tokens, i))
+        return atol(tokeniser.form(t))
     if t.type == real:
         i += 1
-        return atof(tokeniser.form(t)) #convert_json_number(_parse_number(tokeniser, tokens, i))
+        return atof(tokeniser.form(t))
     if tokeniser.form(t) == "{":
         return _parse_json_object(tokeniser, tokens, i)
     if tokeniser.form(t) == "[":
@@ -154,27 +154,3 @@ fn _parse_json_value(tokeniser: Tokeniser, tokens: List[Token], inout i: Int) ra
             i += 1
             return -atof(tokeniser.form(t))
     raise Error("unexpected value at " + str(t.line) + ":" + str(t.column))
-
-# fn _parse_number(tokeniser: Tokeniser, tokens: List[Token], inout i: Int, neg: Bool = False) raises -> Variant[Int, Float64]:
-#     var t = tokens[i]
-#     i += 1
-#     var t2 = tokens[i]
-#     if tokeniser.form(t2) != ".":
-#         return atol(tokeniser.form(t)) * (-1 if neg else 1)
-#     i += 1
-#     var t3 = tokens[i]
-#     if t3.type != number:
-#         raise Error("expected number at " + str(t.line) + ":" + str(t.column))
-#     i += 1
-#     var sb = StringBuilder()
-#     sb.append(tokeniser.form(t))
-#     sb.append(".")
-#     sb.append(tokeniser.form(t3))
-#     return sb.to_float() * (-1 if neg else 1)
-
-# fn convert_json_number(x: Variant[Int, Float64]) raises -> Variant[Int, Float64, String, Bool, JSONObject, JSONArray, JSONNull]:
-#     if x.isa[Int]():
-#         return x[Int]
-#     if x.isa[Float64]():
-#         return x[Float64]
-#     raise Error("unexpected number type")
