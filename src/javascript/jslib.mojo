@@ -41,6 +41,7 @@ struct _JS:
     var js_object_make_deferred_promise: fn(UnsafePointer[NoneType], UnsafePointer[UnsafePointer[NoneType]], UnsafePointer[UnsafePointer[NoneType]], UnsafePointer[UnsafePointer[NoneType]]) -> UnsafePointer[NoneType]
     var js_value_create_json_string: fn(UnsafePointer[NoneType], UnsafePointer[NoneType], Int, UnsafePointer[UnsafePointer[NoneType]]) -> UnsafePointer[NoneType]
     var js_object_is_function: fn(UnsafePointer[NoneType], UnsafePointer[NoneType]) -> Bool
+    var js_value_make_from_json_string: fn(UnsafePointer[NoneType], UnsafePointer[NoneType]) -> UnsafePointer[NoneType]
 
     fn __init__(inout self):
         if os_is_macos():
@@ -82,3 +83,4 @@ struct _JS:
         self.js_object_make_deferred_promise = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[UnsafePointer[NoneType]], UnsafePointer[UnsafePointer[NoneType]], UnsafePointer[UnsafePointer[NoneType]]) -> UnsafePointer[NoneType]]("JSObjectMakeDeferredPromise")
         self.js_value_create_json_string = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType], Int, UnsafePointer[UnsafePointer[NoneType]]) -> UnsafePointer[NoneType]]("JSValueCreateJSONString")
         self.js_object_is_function = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType]) -> Bool]("JSObjectIsFunction")
+        self.js_value_make_from_json_string = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType]) -> UnsafePointer[NoneType]]("JSValueMakeFromJSONString")

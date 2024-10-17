@@ -14,6 +14,16 @@ struct JSValue:
     fn null(ctx: JSContext) -> JSValue:
         return JSValue(JS.js_value_make_null(ctx.ptr))
 
+    @staticmethod
+    fn from_json_string(ctx: JSContext, string: String) raises -> JSValue:
+        with CStr(string) as c_string:
+            var js_string = JS.js_string_create_with_utf8_string(c_string)
+            var js_value = JS.js_value_make_from_json_string(ctx.ptr, js_string)
+            JS.js_string_release(js_string)
+            if not js_value:
+                raise Error("string isn't valid JSON")
+            return JSValue(js_value)
+
     fn __init__(inout self, ptr: UnsafePointer[NoneType]):
         self.ptr = ptr
 

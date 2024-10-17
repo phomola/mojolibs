@@ -33,5 +33,8 @@ fn main():
         var then = value.to_object(ctx)
         var g = JSObject(ctx, js_resolved)
         _ = then.method_call(ctx, promise, g)
+
+        value = JSValue.from_json_string(ctx, """{"abcd": 1234}""")
+        print(value.as_string(ctx), value.as_json_string(ctx))
     except e:
         print("error:", e)        
