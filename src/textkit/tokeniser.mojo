@@ -11,19 +11,19 @@ alias symbol  = 5
 alias eol     = 6
 alias eof     = 7
 
-alias newline = ord("\n")
-alias quote = ord("\"")
-alias backslash = ord("\\")
-alias space = ord(" ")
-alias linefeed = ord("\r")
-alias tab = ord("\t")
-alias dot = ord(".")
-alias zero = ord("0")
-alias nine = ord("9")
-alias char_A = ord("A")
-alias char_Z = ord("Z")
-alias char_a = ord("a")
-alias char_z = ord("z")
+alias `\n` = Byte(ord("\n"))
+alias `"` = Byte(ord("\""))
+alias `\` = Byte(ord("\\"))
+alias `\r` = Byte(ord("\r"))
+alias `\t` = Byte(ord("\t"))
+alias ` ` = Byte(ord(" "))
+alias `.` = Byte(ord("."))
+alias `0` = Byte(ord("0"))
+alias `9` = Byte(ord("9"))
+alias `A` = Byte(ord("A"))
+alias `Z` = Byte(ord("Z"))
+alias `a` = Byte(ord("a"))
+alias `z` = Byte(ord("z"))
 
 @value
 struct Span:
@@ -42,28 +42,16 @@ struct Token:
     var has_esc: Bool
 
 @always_inline
-fn is_white_char(s: String) -> Bool:
-    return s == " " or s == "\r" or s == "\n" or s == "\t"
-
-@always_inline
-fn is_alpha(s: String) -> Bool:
-    return s >= "A" and s <= "Z" or s >= "a" and s <= "z"
-
-@always_inline
-fn is_number(s: String) -> Bool:
-    return s >= "0" and s <= "9"
-
-@always_inline
 fn is_white_char(c: UInt8) -> Bool:
-    return c == space or c == linefeed or c == newline or c == tab
+    return c == ` ` or c == `\r` or c == `\n` or c == `\t`
 
 @always_inline
 fn is_alpha(c: UInt8) -> Bool:
-    return c >= char_A and c <= char_Z or c >= char_a and c <= char_z
+    return c >= `A` and c <= `Z` or c >= `a` and c <= `z`
 
 @always_inline
 fn is_number(c: UInt8) -> Bool:
-    return c >= zero and c <= nine
+    return c >= `0` and c <= `9`
 
 @always_inline
 fn contains_char(list: List[UInt8], char: UInt8) -> Bool:
@@ -114,7 +102,7 @@ struct Tokeniser:
             if state == 0:
                 while i < len(text):
                     var r = text[i]
-                    if r == newline:
+                    if r == `\n`:
                         if self.keep_eol:
                             tokens.append(Token(eol, Span(i, 1), line, col, False))
                         line += 1
@@ -146,17 +134,17 @@ struct Tokeniser:
                         tokens.append(Token(integer, Span(start, i-start), line1, col1, False))
                     state = 0
             elif state == string:
-                if r == quote and not esc:
+                if r == `"` and not esc:
                     tokens.append(Token(string, Span(start, i-start), line1, col1, has_esc))
                     state = 0
                     col += 1
                     i += 1
                 else:
-                    if r == backslash and not esc:
+                    if r == `\` and not esc:
                         col += 1
                         esc = True
                         has_esc = True
-                    elif r == newline:
+                    elif r == `\n`:
                         line += 1
                         col = 1
                         esc = False
@@ -179,7 +167,7 @@ struct Tokeniser:
                     line1 = line
                     col1 = col
                     col += 1
-                elif r == quote:
+                elif r == `"`:
                     state = string
                     has_esc = False
                     i += 1
@@ -188,7 +176,7 @@ struct Tokeniser:
                     col1 = col
                     col += 1
                 else:
-                    if r == dot and start_float == -1 and tokens[-1].type == integer:
+                    if r == `.` and start_float == -1 and tokens[-1].type == integer:
                         if i+1 == len(text) or not is_number(text[i+1]):
                             tokens[-1] = Token(real, Span(start, i-start+1), line1, col1, False)
                         else:
