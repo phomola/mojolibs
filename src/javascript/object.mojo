@@ -3,19 +3,29 @@ from textkit import CStr
 from .jslib import JS, c_null
 from collections import InlineArray, Dict
 
-var funcs = Dict[Int, fn(JSContext, JSObject, List[JSValue]) -> JSValue]()
+var funcs = Dict[Int, fn(JSContext, JSObject, List[JSValue]) raises -> JSValue]()
 
-fn js_func_cb(ctx: UnsafePointer[NoneType], f: UnsafePointer[NoneType], this: UnsafePointer[NoneType], argcount: Int, js_args: UnsafePointer[UnsafePointer[NoneType]], ex: UnsafePointer[NoneType]) -> UnsafePointer[NoneType]:
+fn js_func_cb(ctx: UnsafePointer[NoneType], f: UnsafePointer[NoneType], this: UnsafePointer[NoneType], argcount: Int, js_args: UnsafePointer[UnsafePointer[NoneType]], ex: UnsafePointer[UnsafePointer[NoneType]]) -> UnsafePointer[NoneType]:
     var f_opt = funcs.get(int(f))
     if f_opt:
         var f = f_opt.value()
         var args = List[JSValue](capacity=argcount)
         for i in range(argcount):
             args.append(JSValue(js_args[i]))
-        var value = f(JSContext(ctx), JSObject(this), args)
-        return value.ptr
+        try:
+            var value = f(JSContext(ctx), JSObject(this), args)
+            return value.ptr
+        except e:
+            ex[] = make_js_error(ctx, e).ptr
+            return UnsafePointer[NoneType]()
     else:
+        ex[] = make_js_error(ctx, "JS callback not found").ptr
         return UnsafePointer[NoneType]()
+
+fn make_js_error(ctx: JSContext, error: Error) -> JSValue:
+    var object = JSObject(ctx)
+    object.set_property(ctx, "message", JSValue(ctx, str(error)))
+    return object
 
 struct JSObject:
     var ptr: UnsafePointer[NoneType]
@@ -30,13 +40,16 @@ struct JSObject:
             raise Error("failed to create promise: " + JSObject(ex).get_property(ctx, "message").as_string(ctx))
         return JSObject(promise), JSObject(resolve), JSObject(reject)
 
+    fn __init__(inout self, ctx: JSContext):
+        self.ptr = JS.js_object_make(ctx.ptr, c_null, c_null)
+
     fn __init__(inout self, ptr: UnsafePointer[NoneType]):
         self.ptr = ptr
 
     fn __init__(inout self, value: JSValue):
         self.ptr = value.ptr
 
-    fn __init__(inout self, ctx: JSContext, name: String, f: fn(JSContext, JSObject, List[JSValue]) -> JSValue):
+    fn __init__(inout self, ctx: JSContext, name: String, f: fn(JSContext, JSObject, List[JSValue]) raises -> JSValue):
         with CStr(name) as c_name:
             var js_name = JS.js_string_create_with_utf8_string(c_name)
             var jsf = JS.js_object_make_function_with_callback(ctx.ptr, js_name, js_func_cb)
@@ -44,7 +57,7 @@ struct JSObject:
             funcs[int(jsf)] = f
             self.ptr = jsf
 
-    fn __init__(inout self, ctx: JSContext, f: fn(JSContext, JSObject, List[JSValue]) -> JSValue):
+    fn __init__(inout self, ctx: JSContext, f: fn(JSContext, JSObject, List[JSValue]) raises -> JSValue):
         var jsf = JS.js_object_make_function_with_callback(ctx.ptr, UnsafePointer[NoneType](), js_func_cb)
         funcs[int(jsf)] = f
         self.ptr = jsf

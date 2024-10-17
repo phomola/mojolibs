@@ -1,11 +1,7 @@
 from javascript import JSGlobalContext, JSContext, JSValue, JSObject, js_evaluate
 
-fn js_cb1(ctx: JSContext, this: JSObject, args: List[JSValue]) -> JSValue:
-    try:
-        return JSValue(ctx, args[0].to_number(ctx) + args[1].to_number(ctx))
-    except e:
-        print(e)
-        return JSValue.undefined(ctx)
+fn js_cb1(ctx: JSContext, this: JSObject, args: List[JSValue]) raises -> JSValue:
+    return JSValue(ctx, args[0].to_number(ctx) + args[1].to_number(ctx))
 
 fn main():
     var ctx = JSGlobalContext()
