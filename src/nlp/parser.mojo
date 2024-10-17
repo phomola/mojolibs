@@ -1,5 +1,5 @@
 from nlp import AVM, AVP, Chart, Edge, Grammar, Rule
-from textkit import Tokeniser, Token, word, symbol, string, number, eol, eof
+from textkit import Tokeniser, Token, word, symbol, string, integer, eol, eof
 from sys import argv, stderr, exit
 from pathlib import Path
 from utils import Variant
@@ -164,7 +164,7 @@ fn _parse_edge(tokeniser: Tokeniser, tokens: List[Token], inout i: Int) raises -
         raise Error("expected '-' at " + str(t.line) + ":" + str(t.column))
     i += 1
     t = tokens[i]
-    if t.type != number:
+    if t.type != integer:
         raise Error("expected number at " + str(t.line) + ":" + str(t.column))
     var start = atol(tokeniser.form(t))
     i += 1
@@ -183,7 +183,7 @@ fn _parse_edge(tokeniser: Tokeniser, tokens: List[Token], inout i: Int) raises -
         raise Error("expected '-' at " + str(t.line) + ":" + str(t.column))
     i += 1
     t = tokens[i]
-    if t.type != number:
+    if t.type != integer:
         raise Error("expected number at " + str(t.line) + ":" + str(t.column))
     var end = atol(tokeniser.form(t))
     i += 1
