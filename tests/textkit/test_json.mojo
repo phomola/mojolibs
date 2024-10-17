@@ -8,7 +8,7 @@ fn test_json_parser() raises:
     {
         "key1": true,
         "key2": false,
-        "key3": "abcd",
+        "key3": "ab\\\"cd",
         "key4": 1234,
         "key5": 12.34,
         "key6": {},
@@ -28,7 +28,7 @@ fn test_json_parser() raises:
     assert_equal(False, obj.dict.get("key2").value()[Bool])
     assert_true(obj.dict.get("key3"))
     assert_true(obj.dict.get("key3").value().isa[String]())
-    assert_equal("abcd", obj.dict.get("key3").value()[String])
+    assert_equal("ab\"cd", obj.dict.get("key3").value()[String])
     assert_true(obj.dict.get("key4"))
     assert_true(obj.dict.get("key4").value().isa[Int]())
     assert_equal(1234, obj.dict.get("key4").value()[Int])

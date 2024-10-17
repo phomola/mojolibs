@@ -1,6 +1,7 @@
-from utils import Variant
+from utils import Variant, StringRef
 from collections import List, Dict, Optional
 from textkit.utils import string_from_bytes, bytes_from_string
+from memory import UnsafePointer
 
 alias word   = 1
 alias number = 2
@@ -23,17 +24,20 @@ alias char_a = ord("a")
 alias char_z = ord("z")
 
 @value
+struct Span:
+    var start: Int
+    var len: Int
+
+    fn __eq__(span, span2: Span) -> Bool:
+        return span.start == span2.start and span.len == span2.len
+
+@value
 struct Token:
     var type: Int
-    var form: String
+    var span: Span
     var line: Int
     var column: Int
-
-    fn __eq__(tok1: Token, tok2: Token) -> Bool:
-        return tok1.type == tok2.type and tok1.form == tok2.form and tok1.line == tok2.line and tok1.column == tok2.column
-    
-    fn __str__(self: Token) -> String:
-        return str(self.type) + " " + self.form + " " + str(self.line) + ":" + str(self.column)
+    var has_esc: Bool
 
 fn is_white_char(s: String) -> Bool:
     return s == " " or s == "\r" or s == "\n" or s == "\t"
@@ -59,106 +63,126 @@ fn contains_char(list: List[UInt8], char: UInt8) -> Bool:
             return True
     return False
 
-fn tokenise(text: String, keep_eol: Bool = False, word_chars: String = "") -> List[Token]:
-    return tokenise(bytes_from_string(text), keep_eol, word_chars)
+struct Tokeniser:
+    var input: List[UInt8]
+    var keep_eol: Bool
+    var word_chars: String
 
-fn tokenise(text: List[UInt8], keep_eol: Bool = False, word_chars: String = "") -> List[Token]:
-    var tokens = List[Token]()
-    var i = 0
-    var line = 1
-    var col = 1
-    var line1 = 1
-    var col1 = 1
-    var state = 0
-    var start = 0
-    var esc = False
-    var has_esc = False
-    var word_chars_bytes = bytes_from_string(word_chars)
-    while True:
-        if state == 0:
-            while i < len(text):
-                var r = text[i]
-                if r == newline:
-                    if keep_eol:
-                        tokens.append(Token(eol, "\n", line, col))
-                    line += 1
-                    col = 1
-                elif not is_white_char(r):
-                    break
-                else:
+    fn __init__(inout self, input: List[UInt8], keep_eol: Bool = False, word_chars: String = ""):
+        self.input = input
+        self.keep_eol = keep_eol
+        self.word_chars = word_chars
+
+    fn __init__(inout self, input: String, keep_eol: Bool = False, word_chars: String = ""):
+        self.input = bytes_from_string(input)
+        self.keep_eol = keep_eol
+        self.word_chars = word_chars
+
+    fn form(self, token: Token) -> StringRef:
+        return StringRef(self.input.unsafe_ptr() + token.span.start, token.span.len)
+
+    fn unquoted_form(self, token: Token) -> String:
+        form = self.form(token)
+        return form if not token.has_esc else unquote(form)
+
+    fn tokenise(self) -> List[Token]:
+        var tokens = List[Token]()
+        var i = 0
+        var line = 1
+        var col = 1
+        var line1 = 1
+        var col1 = 1
+        var state = 0
+        var start = 0
+        var esc = False
+        var has_esc = False
+        var word_chars_bytes = bytes_from_string(self.word_chars)
+        var text = self.input
+        while True:
+            if state == 0:
+                while i < len(text):
+                    var r = text[i]
+                    if r == newline:
+                        if self.keep_eol:
+                            tokens.append(Token(eol, Span(i, 1), line, col, False))
+                        line += 1
+                        col = 1
+                    elif not is_white_char(r):
+                        break
+                    else:
+                        col += 1
+                    i += 1
+            if i == len(text):
+                break
+            var r = text[i]
+            if state == word:
+                if is_alpha(r) or is_number(r) or contains_char(word_chars_bytes, r): # `in` doesn't work here
+                    i += 1
                     col += 1
-                i += 1
-        if i == len(text):
-            break
-        var r = text[i]
+                else:
+                    tokens.append(Token(word, Span(start, i-start), line1, col1, False))
+                    state = 0
+            elif state == number:
+                if is_number(r):
+                    i += 1
+                    col += 1
+                else:
+                    tokens.append(Token(number, Span(start, i-start), line1, col1, False))
+                    state = 0
+            elif state == string:
+                if r == quote and not esc:
+                    tokens.append(Token(string, Span(start, i-start), line1, col1, has_esc))
+                    state = 0
+                    col += 1
+                    i += 1
+                else:
+                    if r == backslash and not esc:
+                        col += 1
+                        esc = True
+                        has_esc = True
+                    elif r == newline:
+                        line += 1
+                        col = 1
+                        esc = False
+                    else:
+                        col += 1
+                        esc = False
+                    i += 1
+            else:
+                if is_alpha(r) or contains_char(word_chars_bytes, r):
+                    state = word
+                    start = i
+                    i += 1
+                    line1 = line
+                    col1 = col
+                    col += 1
+                elif is_number(r):
+                    state = number
+                    start = i
+                    i += 1
+                    line1 = line
+                    col1 = col
+                    col += 1
+                elif r == quote:
+                    state = string
+                    has_esc = False
+                    i += 1
+                    start = i
+                    line1 = line
+                    col1 = col
+                    col += 1
+                else:
+                    tokens.append(Token(symbol, Span(i, 1), line, col, False))
+                    i += 1
+                    col += 1
         if state == word:
-            if is_alpha(r) or is_number(r) or contains_char(word_chars_bytes, r): # `in` doesn't work here
-                i += 1
-                col += 1
-            else:
-                tokens.append(Token(word, string_from_bytes(text[start:i]), line1, col1))
-                state = 0
+            tokens.append(Token(word, Span(start, i-start), line1, col1, False))
         elif state == number:
-            if is_number(r):
-                i += 1
-                col += 1
-            else:
-                tokens.append(Token(number, string_from_bytes(text[start:i]), line1, col1))
-                state = 0
+            tokens.append(Token(number, Span(start, i-start), line1, col1, False))
         elif state == string:
-            if r == quote and not esc:
-                tokens.append(Token(string, string_from_bytes(text[start:i]) if not has_esc else unquote(string_from_bytes(text[start:i])), line1, col1))
-                state = 0
-                col += 1
-                i += 1
-            else:
-                if r == backslash and not esc:
-                    col += 1
-                    esc = True
-                    has_esc = True
-                elif r == newline:
-                    line += 1
-                    col = 1
-                    esc = False
-                else:
-                    col += 1
-                    esc = False
-                i += 1
-        else:
-            if is_alpha(r) or contains_char(word_chars_bytes, r):
-                state = word
-                start = i
-                i += 1
-                line1 = line
-                col1 = col
-                col += 1
-            elif is_number(r):
-                state = number
-                start = i
-                i += 1
-                line1 = line
-                col1 = col
-                col += 1
-            elif r == quote:
-                state = string
-                has_esc = False
-                i += 1
-                start = i
-                line1 = line
-                col1 = col
-                col += 1
-            else:
-                tokens.append(Token(symbol, string_from_bytes(r), line, col))
-                i += 1
-                col += 1
-    if state == word:
-        tokens.append(Token(word, string_from_bytes(text[start:i]), line1, col1))
-    elif state == number:
-        tokens.append(Token(number, string_from_bytes(text[start:i]), line1, col1))
-    elif state == string:
-        tokens.append(Token(string, string_from_bytes(text[start:i]) if not has_esc else unquote(string_from_bytes(text[start:i])), line1, col1))
-    tokens.append(Token(eof, "", line, col))
-    return tokens
+            tokens.append(Token(string, Span(start, i-start), line1, col1, has_esc))
+        tokens.append(Token(eof, Span(i, 0), line, col, False))
+        return tokens
 
 fn unquote(s: String) -> String:
     var r: String = ""
