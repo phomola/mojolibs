@@ -48,6 +48,9 @@ struct JSValue:
     fn __del__(owned self):
         pass
 
+    fn get_pointer(self) -> UnsafePointer[NoneType]:
+        return self.ptr
+
     fn as_string(self, ctx: JSContext) raises -> String:
         if self.is_undefined(ctx):
             return "undefined"
