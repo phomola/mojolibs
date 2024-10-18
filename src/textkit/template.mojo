@@ -2,6 +2,7 @@ from textkit import bytes_from_string, string_from_bytes, tokenise, Token, word,
 from ioutils import Writer, write_string, StringBuilder
 from utils import Variant
 from collections import Dict, Optional
+from sys import exit
 
 alias left_bracket = ord("{")
 alias right_bracket = ord("}")
@@ -91,6 +92,17 @@ struct Template:
                         raise Error("field not list of objects: " + field)
             else:
                 raise Error("unknown expression type")
+
+fn must_parse_template(code: String) -> Template:
+    return must_parse_template(bytes_from_string(code))
+
+fn must_parse_template(code: List[UInt8]) -> Template:
+    try:
+        return parse_template(code)
+    except e:
+        print("fatal error: " + str(e))
+        exit(1)
+        return Template(List[Variant[String, FieldExpr, WithExpr, RangeExpr, EndExpr]]())
 
 fn parse_template(code: String) raises -> Template:
     return parse_template(bytes_from_string(code))
