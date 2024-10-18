@@ -28,6 +28,9 @@ struct JSContext:
 
     fn __init__(inout self, ctx: JSGlobalContext):
         self.ptr = ctx.ptr
+
+    fn __init__(inout self, ctx: UnsafePointer[NoneType]):
+        self.ptr = ctx
     
     fn get_global_object(self) -> JSObject:
         var js_object = JS.js_context_get_global_object(self.ptr)
