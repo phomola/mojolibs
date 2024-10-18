@@ -42,8 +42,7 @@ fn run_server() raises:
             print("failed to start server", file=stderr)
             exit(1)
         libevent.evhttp_set_gencb(server, request_handler, handler.get_pointer())
-        ctx_ptr = ctx.get_pointer()
-        handler_ptr = handler.get_pointer()
+        handler.keep_alive()
         print("listening on port", port)
         if not libevent.event_dispatch():
             print("failed to run event loop", file=stderr)
