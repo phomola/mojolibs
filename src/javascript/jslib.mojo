@@ -7,6 +7,7 @@ alias linuxSo = "libjavascriptcoregtk-6.0.so"
 var c_null = UnsafePointer[NoneType]()
 var JS = _JS()
 
+@value
 struct _JS:
     var lib: DLHandle
     var js_global_context_create: fn(UnsafePointer[NoneType]) -> UnsafePointer[NoneType]
