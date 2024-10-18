@@ -3,6 +3,7 @@ from memory import UnsafePointer
 from utils import StringRef
 from textkit import CStr
 
+@value
 struct Libevent:
     var lib: DLHandle
     var lib_pthreads: DLHandle
