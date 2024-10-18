@@ -5,12 +5,10 @@ from javascript import JSGlobalContext, JSContext, JSValue, JSObject, js_evaluat
 from memory import UnsafePointer
 
 var libevent = Libevent()
-var ctx_ptr = UnsafePointer[NoneType]()
-var handler_ptr = UnsafePointer[NoneType]()
+var ctx = JSGlobalContext()
 
 fn request_handler(req: UnsafePointer[NoneType], arg: UnsafePointer[NoneType]):
-    ctx = JSContext(ctx_ptr)
-    handler = JSObject(handler_ptr)
+    handler = JSObject(arg)
     uri = libevent.evhttp_request_get_uri(req)
     request = JSObject(ctx)
     request.set_property(ctx, "uri", JSValue(ctx, uri))
@@ -30,7 +28,6 @@ fn request_handler(req: UnsafePointer[NoneType], arg: UnsafePointer[NoneType]):
 fn run_server() raises:
     file, port = get_file_and_port(argv())
     with open(file, "r") as file:
-        ctx = JSGlobalContext()
         code = file.read()
         _ = js_evaluate(ctx, code)
         global_object = ctx.get_global_object()
