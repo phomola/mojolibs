@@ -33,8 +33,8 @@ struct _JS:
     var js_value_protect: fn(UnsafePointer[NoneType], UnsafePointer[NoneType]) -> None
     var js_value_unprotect: fn(UnsafePointer[NoneType], UnsafePointer[NoneType]) -> None
     var js_object_has_property: fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType]) -> Bool
-    var js_object_get_property: fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType]) -> UnsafePointer[NoneType]
-    var js_object_set_property: fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType], Int, UnsafePointer[NoneType]) -> None
+    var js_object_get_property: fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[UnsafePointer[NoneType]]) -> UnsafePointer[NoneType]
+    var js_object_set_property: fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType], Int, UnsafePointer[UnsafePointer[NoneType]]) -> None
     var js_context_get_global_object: fn(UnsafePointer[NoneType]) -> UnsafePointer[NoneType]
     var js_object_call_as_function: fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType], Int, UnsafePointer[UnsafePointer[NoneType]], UnsafePointer[UnsafePointer[NoneType]]) -> UnsafePointer[NoneType]
     var js_object_make_function_with_callback: fn(UnsafePointer[NoneType], UnsafePointer[NoneType], fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType], Int, UnsafePointer[UnsafePointer[NoneType]], UnsafePointer[UnsafePointer[NoneType]]) -> UnsafePointer[NoneType]) -> UnsafePointer[NoneType]
@@ -76,8 +76,8 @@ struct _JS:
         self.js_value_protect = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType]) -> None]("JSValueProtect")
         self.js_value_unprotect = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType]) -> None]("JSValueUnprotect")
         self.js_object_has_property = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType]) -> Bool]("JSObjectHasProperty")
-        self.js_object_get_property = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType]) -> UnsafePointer[NoneType]]("JSObjectGetProperty")
-        self.js_object_set_property = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType], Int, UnsafePointer[NoneType]) -> None]("JSObjectSetProperty")
+        self.js_object_get_property = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[UnsafePointer[NoneType]]) -> UnsafePointer[NoneType]]("JSObjectGetProperty")
+        self.js_object_set_property = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType], Int, UnsafePointer[UnsafePointer[NoneType]]) -> None]("JSObjectSetProperty")
         self.js_context_get_global_object = self.lib.get_function[fn(UnsafePointer[NoneType]) -> UnsafePointer[NoneType]]("JSContextGetGlobalObject")
         self.js_object_call_as_function = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType], Int, UnsafePointer[UnsafePointer[NoneType]], UnsafePointer[UnsafePointer[NoneType]]) -> UnsafePointer[NoneType]]("JSObjectCallAsFunction")
         self.js_object_make_function_with_callback = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType], fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType], Int, UnsafePointer[UnsafePointer[NoneType]], UnsafePointer[UnsafePointer[NoneType]]) -> UnsafePointer[NoneType]) -> UnsafePointer[NoneType]]("JSObjectMakeFunctionWithCallback")
