@@ -4,7 +4,7 @@ from nlp.avm import AVM
 from memory import Arc
 
 @value
-struct Edge(Stringable, Formattable):
+struct Edge(Stringable, Writable):
     var start: Int
     var end: Int
     var category: String
@@ -16,9 +16,9 @@ struct Edge(Stringable, Formattable):
     fn __str__(self) -> String:
         return "-" + str(self.start) + "- " + self.tree() + " " + str(self.avm) + " -" + str(self.end) + "-"
 
-    fn format_to(self, inout writer: Formatter):
+    fn write_to[W: Writer](self, inout writer: W):
         writer.write("-", self.start, "- ", self.tree(), " ")
-        self.avm.format_to(writer)
+        self.avm.write_to(writer)
         writer.write(" -", self.end, "-")
 
     fn tree(self) -> String:
@@ -36,7 +36,7 @@ struct Edge(Stringable, Formattable):
         return s
 
 @value
-struct Rule(Stringable, Formattable):
+struct Rule(Stringable, Writable):
     var lhs: String
     var rhs: List[String]
     var avmfn: fn(List[AVM]) escaping -> Optional[AVM]
@@ -47,13 +47,13 @@ struct Rule(Stringable, Formattable):
             s += " " + sym[]
         return s
 
-    fn format_to(self, inout writer: Formatter):
+    fn write_to[W: Writer](self, inout writer: W):
         writer.write(self.lhs, " ->")
         for sym in self.rhs:
             writer.write(" ", sym[])
 
 @value
-struct Grammar(Stringable, Formattable):
+struct Grammar(Stringable, Writable):
     var rules: List[Rule]
 
     fn __str__(self) -> String:
@@ -62,13 +62,13 @@ struct Grammar(Stringable, Formattable):
             s += str(rule[]) + "\n"
         return s
 
-    fn format_to(self, inout writer: Formatter):
+    fn write_to[W: Writer](self, inout writer: W):
         for rule in self.rules:
-            rule[].format_to(writer)
+            rule[].write_to(writer)
             writer.write("\n")
 
 @value
-struct Chart(Stringable, Formattable):
+struct Chart(Stringable, Writable):
     var edges: Dict[Int, List[Arc[Edge]]]
 
     fn __str__(self) -> String:
@@ -79,11 +79,11 @@ struct Chart(Stringable, Formattable):
                     s += str(edge[][]) + "\n"
         return s
 
-    fn format_to(self, inout writer: Formatter):
+    fn write_to[W: Writer](self, inout writer: W):
         for edges in self.edges.values():
             for edge in edges[]:
                 if not edge[][].used:
-                    edge[][].format_to(writer)
+                    edge[][].write_to(writer)
                     writer.write("\n")
 
     fn __init__(inout self):
