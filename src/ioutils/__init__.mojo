@@ -1,6 +1,6 @@
 from .file import File
 from .reader import Reader, read_all, BufferedReader
-from .writer import Writer, write_string
+from .writer import IOWriter, write_string
 from .closer import Closer
 from .copy import copy_all
 from .string_builder import StringBuilder

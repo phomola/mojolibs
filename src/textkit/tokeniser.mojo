@@ -176,7 +176,7 @@ struct Tokeniser:
                     col1 = col
                     col += 1
                 else:
-                    if r == `.` and start_float == -1 and tokens[-1].type == integer:
+                    if r == `.` and start_float == -1 and len(tokens) > 0 and tokens[-1].type == integer:
                         if i+1 == len(text) or not is_number(text[i+1]):
                             tokens[-1] = Token(real, Span(start, i-start+1), line1, col1, False)
                         else:
