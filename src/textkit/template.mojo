@@ -1,7 +1,8 @@
-from textkit import bytes_from_string, string_from_bytes, tokenise, Token, word, eof
-from ioutils import Writer, write_string, StringBuilder
+from textkit import bytes_from_string, string_from_bytes, Tokeniser, Token, word, eof
+from ioutils import IOWriter, write_string, StringBuilder
 from utils import Variant
 from collections import Dict, Optional
+from sys import exit
 
 alias left_bracket = ord("{")
 alias right_bracket = ord("}")
@@ -50,7 +51,7 @@ struct Template:
         self.execute(data, sb)
         return str(sb)
 
-    fn execute[T: Writer](self, data: Object, inout writer: T) raises:
+    fn execute[T: IOWriter](self, data: Object, inout writer: T) raises:
         for segment in self.segments:
             if segment[].isa[String]():
                 write_string(writer, segment[][String])
@@ -92,6 +93,17 @@ struct Template:
             else:
                 raise Error("unknown expression type")
 
+fn must_parse_template(code: String) -> Template:
+    return must_parse_template(bytes_from_string(code))
+
+fn must_parse_template(code: List[UInt8]) -> Template:
+    try:
+        return parse_template(code)
+    except e:
+        print("fatal error: " + str(e))
+        exit(1)
+        return Template(List[Variant[String, FieldExpr, WithExpr, RangeExpr, EndExpr]]())
+
 fn parse_template(code: String) raises -> Template:
     return parse_template(bytes_from_string(code))
 
@@ -104,6 +116,7 @@ fn parse_template(code: List[UInt8], inout i: Int) raises -> Template:
     var in_brackets = False
     var segments = List[Variant[String, FieldExpr, WithExpr, RangeExpr, EndExpr]]()
     while i < len(code):
+        print("##### 0", i, len(code))
         if not in_brackets:
             if code[i] == left_bracket:
                 i += 1
@@ -122,9 +135,14 @@ fn parse_template(code: List[UInt8], inout i: Int) raises -> Template:
                 if i == len(code):
                     break
                 if code[i] == right_bracket:
-                    var tokens = tokenise(code[start:i-1], word_chars = "_")
+                    var s: String = code[start:i-1]
+                    print("##### expr:", s)
+                    var tokeniser = Tokeniser(code[start:i-1], word_chars = "_")
+                    print("##### 3")
+                    var tokens = tokeniser.tokenise()
+                    print("##### 4")
                     var j = 0
-                    var expr = parse_expr(tokens, j)
+                    var expr = parse_expr(tokeniser, tokens, j)
                     if expr.isa[FieldExpr]():
                         segments.append(expr)
                         i += 1
@@ -145,26 +163,28 @@ fn parse_template(code: List[UInt8], inout i: Int) raises -> Template:
                     in_brackets = False
             else:
                 i += 1
+    print("##### 1")
     segments.append(string_from_bytes(code[start:]))
+    print("##### 2")
     return Template(segments)
 
-fn parse_expr(tokens: List[Token], inout i: Int) raises -> Variant[String, FieldExpr, WithExpr, RangeExpr, EndExpr]:
+fn parse_expr(tokeniser: Tokeniser, tokens: List[Token], inout i: Int) raises -> Variant[String, FieldExpr, WithExpr, RangeExpr, EndExpr]:
     var token = tokens[i]
-    if token.form == "end":
+    if tokeniser.form(token) == "end":
         i += 1
         token = tokens[i]
         if token.type != eof:
             raise Error("expected end of expression")
         return EndExpr()
-    if token.form == "with":
+    if tokeniser.form(token) == "with":
         i += 1
         token = tokens[i]
-        if token.form == ".":
+        if tokeniser.form(token) == ".":
             i += 1
             token = tokens[i]
             if token.type != word:
                 raise Error("expected identifier after '.'")
-            var ident = token.form
+            var ident = tokeniser.form(token)
             i += 1
             token = tokens[i]
             if token.type != eof:
@@ -172,15 +192,15 @@ fn parse_expr(tokens: List[Token], inout i: Int) raises -> Variant[String, Field
             return WithExpr(ident, None)
         else:
             raise Error("expected '.'")
-    if token.form == "range":
+    if tokeniser.form(token) == "range":
         i += 1
         token = tokens[i]
-        if token.form == ".":
+        if tokeniser.form(token) == ".":
             i += 1
             token = tokens[i]
             if token.type != word:
                 raise Error("expected identifier after '.'")
-            var ident = token.form
+            var ident = tokeniser.form(token)
             i += 1
             token = tokens[i]
             if token.type != eof:
@@ -188,12 +208,12 @@ fn parse_expr(tokens: List[Token], inout i: Int) raises -> Variant[String, Field
             return RangeExpr(ident, None)
         else:
             raise Error("expected '.'")
-    if token.form == ".":
+    if tokeniser.form(token) == ".":
         i += 1
         token = tokens[i]
         if token.type != word:
             raise Error("expected identifier after '.'")
-        var ident = token.form
+        var ident = tokeniser.form(token)
         i += 1
         token = tokens[i]
         if token.type != eof:

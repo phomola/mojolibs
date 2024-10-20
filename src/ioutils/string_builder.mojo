@@ -1,7 +1,7 @@
 from textkit import string_from_bytes, stringref_from_bytes
 from utils import StringRef
 
-struct StringBuilder(Writer, Stringable, Formattable):
+struct StringBuilder(IOWriter, Stringable, Writable):
     var buffer: List[UInt8]
 
     fn __init__(inout self):
@@ -19,7 +19,7 @@ struct StringBuilder(Writer, Stringable, Formattable):
     fn __str__(self) -> String:
         return string_from_bytes(self.buffer)
 
-    fn format_to(self, inout writer: Formatter):
+    fn write_to[W: Writer](self, inout writer: W):
         writer.write(self.as_string_ref())
     
     fn keep_alive(self):
