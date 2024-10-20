@@ -134,7 +134,6 @@ fn parse_template(code: List[UInt8], inout i: Int) raises -> Template:
                 if i == len(code):
                     break
                 if code[i] == right_bracket:
-                    var s: String = code[start:i-1]
                     var tokeniser = Tokeniser(code[start:i-1], word_chars = "_")
                     var tokens = tokeniser.tokenise()
                     var j = 0
