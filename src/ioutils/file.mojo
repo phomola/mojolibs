@@ -1,6 +1,6 @@
 from sys import stderr
 
-struct File(Reader, Writer, Closer):
+struct File(Reader, IOWriter, Closer):
     var handle: FileHandle
 
     fn __init__(inout self, owned handle: FileHandle):
