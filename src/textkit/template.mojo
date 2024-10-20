@@ -135,12 +135,8 @@ fn parse_template(code: List[UInt8], inout i: Int) raises -> Template:
                 if i == len(code):
                     break
                 if code[i] == right_bracket:
-                    var s: String = code[start:i-1]
-                    print("##### expr:", s)
                     var tokeniser = Tokeniser(code[start:i-1], word_chars = "_")
-                    print("##### 3")
                     var tokens = tokeniser.tokenise()
-                    print("##### 4")
                     var j = 0
                     var expr = parse_expr(tokeniser, tokens, j)
                     if expr.isa[FieldExpr]():
