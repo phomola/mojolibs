@@ -6,7 +6,7 @@ struct AVP:
     var attr: String
     var value: Variant[String, AVM]
 
-struct AVM(Stringable, Formattable):
+struct AVM(Stringable, Writable):
     var features: Dict[String, Variant[String, AVM]]
 
     fn __init__(inout self, pairs: List[AVP]):
@@ -35,7 +35,7 @@ struct AVM(Stringable, Formattable):
             s += it[].key + ":" + sval + " "
         return s + "]"
 
-    fn format_to(self, inout writer: Formatter):
+    fn write_to[W: Writer](self, inout writer: W):
         writer.write("[ ")
         for it in self.features.items():
             writer.write(it[].key, ":")
@@ -43,7 +43,7 @@ struct AVM(Stringable, Formattable):
             if val.isa[String]():
                 writer.write(val[String])
             elif val.isa[AVM]():
-                val[AVM].format_to(writer)
+                val[AVM].write_to(writer)
             writer.write(" ")
         writer.write("]")
 

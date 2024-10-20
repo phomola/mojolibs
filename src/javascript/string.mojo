@@ -3,7 +3,7 @@ from utils import StringRef
 from textkit import CStr
 from .jslib import JS, c_null
 
-struct JSString(Stringable,Formattable):
+struct JSString(Stringable, Writable):
     var ptr: UnsafePointer[NoneType]
 
     fn __init__(inout self, string: String):
@@ -30,5 +30,5 @@ struct JSString(Stringable,Formattable):
         buffer.free()
         return string
 
-    fn format_to(self, inout writer: Formatter):
+    fn write_to[W: Writer](self, inout writer: W):
         writer.write(str(self))
