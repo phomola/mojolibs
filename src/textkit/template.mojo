@@ -116,7 +116,6 @@ fn parse_template(code: List[UInt8], inout i: Int) raises -> Template:
     var in_brackets = False
     var segments = List[Variant[String, FieldExpr, WithExpr, RangeExpr, EndExpr]]()
     while i < len(code):
-        print("##### 0", i, len(code))
         if not in_brackets:
             if code[i] == left_bracket:
                 i += 1
@@ -136,11 +135,8 @@ fn parse_template(code: List[UInt8], inout i: Int) raises -> Template:
                     break
                 if code[i] == right_bracket:
                     var s: String = code[start:i-1]
-                    print("##### expr:", s)
                     var tokeniser = Tokeniser(code[start:i-1], word_chars = "_")
-                    print("##### 3")
                     var tokens = tokeniser.tokenise()
-                    print("##### 4")
                     var j = 0
                     var expr = parse_expr(tokeniser, tokens, j)
                     if expr.isa[FieldExpr]():
@@ -163,9 +159,7 @@ fn parse_template(code: List[UInt8], inout i: Int) raises -> Template:
                     in_brackets = False
             else:
                 i += 1
-    print("##### 1")
     segments.append(string_from_bytes(code[start:]))
-    print("##### 2")
     return Template(segments)
 
 fn parse_expr(tokeniser: Tokeniser, tokens: List[Token], inout i: Int) raises -> Variant[String, FieldExpr, WithExpr, RangeExpr, EndExpr]:
