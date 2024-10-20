@@ -2,7 +2,7 @@ from sys import ffi
 from memory import memcpy, UnsafePointer
 from os import getenv
 from utils import StringRef
-from ioutils import Writer
+from ioutils import IOWriter
 
 alias HttpCtx = UnsafePointer[NoneType]
 
@@ -31,7 +31,7 @@ struct HttpRequest:
         return ResponseWriter(self)
 
 @value
-struct ResponseWriter(Writer):
+struct ResponseWriter(IOWriter):
     var req: HttpRequest
 
     fn write_bytes(inout self, list: List[UInt8]) raises:
