@@ -6,6 +6,25 @@ from textkit import Tokeniser, Token, word, symbol, string, integer, real, eol, 
 struct JSONObject:
     var dict: Dict[String, Variant[Int, Float64, String, Bool, JSONObject, JSONArray, JSONNull]]
 
+    fn get_string(self, key: String) -> Optional[String]:
+        var val_opt = self.dict.get(key)
+        if val_opt:
+            var val = val_opt.value()
+            if val.isa[String]():
+                return val[String]
+        return None
+
+    fn must_get_string(self, key: String) raises -> String:
+        var val_opt = self.dict.get(key)
+        if val_opt:
+            var val = val_opt.value()
+            if val.isa[String]():
+                return val[String]
+            else:
+                raise Error("'" + key + "' in JSON object not string")    
+        else:
+            raise Error("'" + key + "' not in JSON object")
+
 @value
 struct JSONArray:
 	var array: List[Variant[Int, Float64, String, Bool, JSONObject, JSONArray, JSONNull]]
