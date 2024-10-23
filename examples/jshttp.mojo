@@ -3,11 +3,14 @@ from sys import argv, stderr, exit
 from utils import StringRef
 from javascript import JSGlobalContext, JSContext, JSValue, JSObject, js_evaluate
 from memory import UnsafePointer
+from dispatch import Semaphore
 
 var libevent = Libevent()
 var ctx = JSGlobalContext()
+var sem = Semaphore(10)
 
 fn request_handler(req: UnsafePointer[NoneType], arg: UnsafePointer[NoneType]):
+    sem.wait()
     handler = JSObject(arg)
     uri = libevent.evhttp_request_get_uri(req)
     request = JSObject(ctx)
@@ -24,6 +27,7 @@ fn request_handler(req: UnsafePointer[NoneType], arg: UnsafePointer[NoneType]):
     outbuf = libevent.evhttp_request_get_output_buffer(req)
     _ = libevent.evbuffer_add(outbuf, response_data)
     libevent.evhttp_send_reply(req, response_status, "", outbuf)
+    sem.signal()
 
 fn run_server() raises:
     file, port = get_file_and_port(argv())
