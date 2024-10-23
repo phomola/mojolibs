@@ -16,6 +16,9 @@ struct JSGlobalContext:
     fn __del__(owned self):
         JS.js_global_context_release(self.ptr)
 
+    fn get_pointer(self) -> UnsafePointer[NoneType]:
+        return self.ptr
+
     fn get_global_object(self) -> JSObject:
         var js_object = JS.js_context_get_global_object(self.ptr)
         return JSObject(js_object)
