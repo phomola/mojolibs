@@ -10,13 +10,13 @@ var ctx = JSGlobalContext()
 var sem = Semaphore(10)
 
 fn request_handler(req: UnsafePointer[NoneType], arg: UnsafePointer[NoneType]):
-    sem.wait()
     handler = JSObject(arg)
     uri = libevent.evhttp_request_get_uri(req)
     request = JSObject(ctx)
     request.set_property(ctx, "uri", JSValue(ctx, uri))
     var response_data: String
     var response_status: Int
+    sem.wait()
     try:
         response = handler.call(ctx, request)
         response_data = response.as_json_string(ctx)
@@ -24,10 +24,10 @@ fn request_handler(req: UnsafePointer[NoneType], arg: UnsafePointer[NoneType]):
     except e:
         response_data = "handler exception: " + str(e)
         response_status = 500
+    sem.signal()
     outbuf = libevent.evhttp_request_get_output_buffer(req)
     _ = libevent.evbuffer_add(outbuf, response_data)
     libevent.evhttp_send_reply(req, response_status, "", outbuf)
-    sem.signal()
 
 fn run_server() raises:
     file, port = get_file_and_port(argv())
