@@ -1,5 +1,6 @@
 from sys import DLHandle, os_is_macos, stderr, exit
 from memory import UnsafePointer
+from sys.ffi import c_char
 
 alias macosDylib = "/System/Library/Frameworks/JavaScriptCore.framework/JavaScriptCore"
 alias linuxSo = "libjavascriptcoregtk-6.0.so"
@@ -13,11 +14,11 @@ struct _JS:
     var js_global_context_create: fn(UnsafePointer[NoneType]) -> UnsafePointer[NoneType]
     var js_global_context_retain: fn(UnsafePointer[NoneType]) -> UnsafePointer[NoneType]
     var js_global_context_release: fn(UnsafePointer[NoneType]) -> None
-    var js_string_create_with_utf8_string: fn(UnsafePointer[UInt8]) -> UnsafePointer[NoneType]
+    var js_string_create_with_utf8_string: fn(UnsafePointer[c_char]) -> UnsafePointer[NoneType]
     var js_string_retain: fn(UnsafePointer[NoneType]) -> UnsafePointer[NoneType]
     var js_string_release: fn(UnsafePointer[NoneType]) -> None
     var js_string_get_maximum_utf8_cstring_size: fn(UnsafePointer[NoneType]) -> Int
-    var js_string_get_utf8_cstring: fn(UnsafePointer[NoneType], UnsafePointer[UInt8], Int) -> Int
+    var js_string_get_utf8_cstring: fn(UnsafePointer[NoneType], UnsafePointer[c_char], Int) -> Int
     var js_evaluate_script: fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType], Int, UnsafePointer[UnsafePointer[NoneType]]) -> UnsafePointer[NoneType]
     var js_value_is_null: fn(UnsafePointer[NoneType], UnsafePointer[NoneType]) -> Bool
     var js_value_is_undefined: fn(UnsafePointer[NoneType], UnsafePointer[NoneType]) -> Bool
@@ -56,11 +57,11 @@ struct _JS:
         self.js_global_context_create = self.lib.get_function[fn(UnsafePointer[NoneType]) -> UnsafePointer[NoneType]]("JSGlobalContextCreate")
         self.js_global_context_retain = self.lib.get_function[fn(UnsafePointer[NoneType]) -> UnsafePointer[NoneType]]("JSGlobalContextRetain")
         self.js_global_context_release = self.lib.get_function[fn(UnsafePointer[NoneType]) -> None]("JSGlobalContextRelease")
-        self.js_string_create_with_utf8_string = self.lib.get_function[fn(UnsafePointer[UInt8]) -> UnsafePointer[NoneType]]("JSStringCreateWithUTF8CString")
+        self.js_string_create_with_utf8_string = self.lib.get_function[fn(UnsafePointer[c_char]) -> UnsafePointer[NoneType]]("JSStringCreateWithUTF8CString")
         self.js_string_retain = self.lib.get_function[fn(UnsafePointer[NoneType]) -> UnsafePointer[NoneType]]("JSStringRetain")
         self.js_string_release = self.lib.get_function[fn(UnsafePointer[NoneType]) -> None]("JSStringRelease")
         self.js_string_get_maximum_utf8_cstring_size = self.lib.get_function[fn(UnsafePointer[NoneType]) -> Int]("JSStringGetMaximumUTF8CStringSize")
-        self.js_string_get_utf8_cstring = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[UInt8], Int) -> Int]("JSStringGetUTF8CString")
+        self.js_string_get_utf8_cstring = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[c_char], Int) -> Int]("JSStringGetUTF8CString")
         self.js_evaluate_script = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType], UnsafePointer[NoneType], Int, UnsafePointer[UnsafePointer[NoneType]]) -> UnsafePointer[NoneType]]("JSEvaluateScript")
         self.js_value_is_null = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType]) -> Bool]("JSValueIsNull")
         self.js_value_is_undefined = self.lib.get_function[fn(UnsafePointer[NoneType], UnsafePointer[NoneType]) -> Bool]("JSValueIsUndefined")
