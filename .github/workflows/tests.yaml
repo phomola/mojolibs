@@ -15,4 +15,5 @@ jobs:
       - name: Run tests
         run: |
           curl -ssL https://magic.modular.com/50fdd5ae-c771-4367-bf71-f4b2320317cf | bash
+          source /home/runner/.bash_profile
           mojo test -I src tests
