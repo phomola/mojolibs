@@ -31,7 +31,6 @@ fn request_handler(req: UnsafePointer[NoneType], arg: UnsafePointer[NoneType]):
 
 fn run_server() raises:
     file, port = get_file_and_port(argv())
-    #
     with open(file, "r") as file:
         code = file.read()
         _ = js_evaluate(ctx, code)
