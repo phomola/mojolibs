@@ -12,7 +12,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: fabasoad/setup-mojo-action@v1
       - name: Run tests
         run: |
-          mojo test -I src tests
+          sudo apt-get update
+          sudo apt-get install -y g++
+          curl -ssL https://magic.modular.com/50fdd5ae-c771-4367-bf71-f4b2320317cf | bash
+          source /home/runner/.bash_profile
+          magic run mojo test -I src tests
