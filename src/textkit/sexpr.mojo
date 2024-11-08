@@ -1,7 +1,7 @@
 from utils import Variant
 from collections import List, Dict, Optional
 from textkit.utils import string_from_bytes, bytes_from_string
-from textkit import tokenise, Token, word, symbol, string, number, eol, eof
+from textkit import Tokeniser, Token, word, symbol, string, integer, real, eol, eof
 
 @value
 struct Identifier(Stringable):
@@ -40,15 +40,16 @@ fn parse_sexpr(input: String) raises -> Sexpr:
     return parse_sexpr(bytes_from_string(input))
 
 fn parse_sexpr(input: List[UInt8]) raises -> Sexpr:
-    var tokens = tokenise(input)
+    var tokeniser = Tokeniser(input)
+    var tokens = tokeniser.tokenise()
     var i = 0
-    return _parse_sexpr(tokens, i)
+    return _parse_sexpr(tokeniser, tokens, i)
 
-fn _parse_sexpr(tokens: List[Token], inout i: Int) raises -> Sexpr:
+fn _parse_sexpr(tokeniser: Tokeniser, tokens: List[Token], inout i: Int) raises -> Sexpr:
     var t = tokens[i]
     if t.type == eof:
         raise Error("unexpected EOF")
-    if t.form != "(":
+    if tokeniser.form(t) != "(":
         raise Error("expected ')' at " + str(t.line) + ":" + str(t.column))
     i += 1
     t = tokens[i]
@@ -56,20 +57,20 @@ fn _parse_sexpr(tokens: List[Token], inout i: Int) raises -> Sexpr:
     while True:
         if t.type == eof:
             raise Error("unexpected EOF")
-        if t.form == ")":
+        if tokeniser.form(t) == ")":
             i += 1
             return Sexpr(list)
         if t.type == word:
-            list.append(Identifier(t.form))
+            list.append(Identifier(tokeniser.form(t)))
             i += 1
-        elif t.type == number:
-            list.append(atol(t.form))
+        elif t.type == integer:
+            list.append(atol(tokeniser.form(t)))
             i += 1
         elif t.type == string:
-            list.append(t.form)
+            list.append(tokeniser.form(t))
             i += 1
-        elif t.form == "(":
-            list.append(_parse_sexpr(tokens, i))
+        elif tokeniser.form(t) == "(":
+            list.append(_parse_sexpr(tokeniser, tokens, i))
         else:
             raise Error("expected valid element type at " + str(t.line) + ":" + str(t.column))
         t = tokens[i]
