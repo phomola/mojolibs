@@ -1,7 +1,7 @@
 from utils import Variant
 from collections import List, Dict, Optional
 from nlp.avm import AVM
-from memory import Arc
+from memory import ArcPointer
 
 @value
 struct Edge(Stringable, Writable):
@@ -11,7 +11,7 @@ struct Edge(Stringable, Writable):
     var avm: AVM
     var level: Int
     var used: Bool
-    var children: List[Arc[Edge]]
+    var children: List[ArcPointer[Edge]]
 
     fn __str__(self) -> String:
         return "-" + str(self.start) + "- " + self.tree() + " " + str(self.avm) + " -" + str(self.end) + "-"
@@ -69,7 +69,7 @@ struct Grammar(Stringable, Writable):
 
 @value
 struct Chart(Stringable, Writable):
-    var edges: Dict[Int, List[Arc[Edge]]]
+    var edges: Dict[Int, List[ArcPointer[Edge]]]
 
     fn __str__(self) -> String:
         var s: String = ""
@@ -87,9 +87,9 @@ struct Chart(Stringable, Writable):
                     writer.write("\n")
 
     fn __init__(inout self):
-        self.edges = Dict[Int, List[Arc[Edge]]]()
+        self.edges = Dict[Int, List[ArcPointer[Edge]]]()
     
-    fn add(inout self, owned edge: Arc[Edge]):
+    fn add(inout self, owned edge: ArcPointer[Edge]):
         var edges_opt = self.edges.get(edge[].start)
         if edges_opt:
             var edges = edges_opt.value()
@@ -107,7 +107,7 @@ struct Chart(Stringable, Writable):
             level += 1
 
     fn _parse(inout self, grammar: Grammar, level: Int) -> Bool:
-        var newEdges = List[Arc[Edge]]()
+        var newEdges = List[ArcPointer[Edge]]()
         for edges in self.edges.values():
             for edge1 in edges[]:
                 for rule in grammar.rules:
