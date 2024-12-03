@@ -18,15 +18,17 @@ struct JSString(Stringable, Writable):
 
     fn __moveinit__(inout self, owned other: JSString):
         self.ptr = other.ptr
+        other.ptr = UnsafePointer[NoneType]()
 
     fn __del__(owned self):
-        JS.js_string_release(self.ptr)
+        if self.ptr:
+            JS.js_string_release(self.ptr)
 
     fn __str__(self) -> String:
         var max_size = JS.js_string_get_maximum_utf8_cstring_size(self.ptr)
         var buffer = UnsafePointer[UInt8].alloc(max_size)
         _ = JS.js_string_get_utf8_cstring(self.ptr, buffer, max_size)
-        var string: String = StringRef(buffer)
+        var string: String = StringRef(ptr=buffer)
         buffer.free()
         return string
 
