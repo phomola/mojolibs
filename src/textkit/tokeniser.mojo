@@ -2,6 +2,7 @@ from utils import Variant, StringRef
 from collections import List, Dict, Optional
 from textkit.utils import string_from_bytes, bytes_from_string
 from memory import UnsafePointer
+from sys.ffi import c_char
 
 alias word    = 1
 alias integer = 2
@@ -46,26 +47,26 @@ fn is_white_char(c: UInt8) -> Bool:
     return c == ` ` or c == `\r` or c == `\n` or c == `\t`
 
 @always_inline
-fn is_alpha(c: UInt8) -> Bool:
+fn is_alpha(c: Byte) -> Bool:
     return c >= `A` and c <= `Z` or c >= `a` and c <= `z`
 
 @always_inline
-fn is_number(c: UInt8) -> Bool:
+fn is_number(c: Byte) -> Bool:
     return c >= `0` and c <= `9`
 
 @always_inline
-fn contains_char(list: List[UInt8], char: UInt8) -> Bool:
+fn contains_char(list: List[Byte], char: Byte) -> Bool:
     for el in list:
         if el[] == char:
             return True
     return False
 
 struct Tokeniser:
-    var input: List[UInt8]
+    var input: List[Byte]
     var keep_eol: Bool
     var word_chars: String
 
-    fn __init__(inout self, input: List[UInt8], keep_eol: Bool = False, word_chars: String = ""):
+    fn __init__(inout self, input: List[Byte], keep_eol: Bool = False, word_chars: String = ""):
         self.input = input
         self.keep_eol = keep_eol
         self.word_chars = word_chars
@@ -77,7 +78,7 @@ struct Tokeniser:
 
     @always_inline
     fn form(self, token: Token) -> StringRef:
-        return StringRef(self.input.unsafe_ptr() + token.span.start, token.span.len)
+        return StringRef((self.input.unsafe_ptr() + token.span.start).bitcast[c_char](), token.span.len)
 
     @always_inline
     fn unquoted_form(self, token: Token) -> String:

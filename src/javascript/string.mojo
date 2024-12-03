@@ -2,6 +2,7 @@ from memory import UnsafePointer
 from utils import StringRef
 from textkit import CStr
 from .jslib import JS, c_null
+from sys.ffi import c_char
 
 struct JSString(Stringable, Writable):
     var ptr: UnsafePointer[NoneType]
@@ -26,7 +27,7 @@ struct JSString(Stringable, Writable):
 
     fn __str__(self) -> String:
         var max_size = JS.js_string_get_maximum_utf8_cstring_size(self.ptr)
-        var buffer = UnsafePointer[UInt8].alloc(max_size)
+        var buffer = UnsafePointer[c_char].alloc(max_size)
         _ = JS.js_string_get_utf8_cstring(self.ptr, buffer, max_size)
         var string: String = StringRef(ptr=buffer)
         buffer.free()

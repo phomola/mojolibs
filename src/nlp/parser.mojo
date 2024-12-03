@@ -10,7 +10,7 @@ from memory import ArcPointer
 fn parse_grammar(input: String) raises -> Grammar:
     return parse_grammar(bytes_from_string(input))
 
-fn parse_grammar(input: List[UInt8]) raises -> Grammar:
+fn parse_grammar(input: List[Byte]) raises -> Grammar:
     var tokeniser = Tokeniser(input, word_chars="_'")
     var tokens = tokeniser.tokenise()
     var i = 0
@@ -19,7 +19,7 @@ fn parse_grammar(input: List[UInt8]) raises -> Grammar:
 fn parse_chart(input: String) raises -> Chart:
     return parse_chart(bytes_from_string(input))
 
-fn parse_chart(input: List[UInt8]) raises -> Chart:
+fn parse_chart(input: List[Byte]) raises -> Chart:
     var tokeniser = Tokeniser(input, word_chars="_'")
     var tokens = tokeniser.tokenise()
     var i = 0
