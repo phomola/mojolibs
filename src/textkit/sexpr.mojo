@@ -43,9 +43,9 @@ fn parse_sexpr(input: List[UInt8]) raises -> Sexpr:
     var tokeniser = Tokeniser(input)
     var tokens = tokeniser.tokenise()
     var i = 0
-    return _parse_sexpr(tokeniser, tokens, i)
+    return _parse_sexpr(tokens, tokeniser, i)
 
-fn _parse_sexpr(tokeniser: Tokeniser, tokens: List[Token], inout i: Int) raises -> Sexpr:
+fn _parse_sexpr(tokens: List[Token], tokeniser: Tokeniser, inout i: Int) raises -> Sexpr:
     var t = tokens[i]
     if t.type == eof:
         raise Error("unexpected EOF")
@@ -66,11 +66,14 @@ fn _parse_sexpr(tokeniser: Tokeniser, tokens: List[Token], inout i: Int) raises 
         elif t.type == integer:
             list.append(atol(tokeniser.form(t)))
             i += 1
+        elif t.type == real:
+            list.append(atof(tokeniser.form(t)))
+            i += 1
         elif t.type == string:
             list.append(tokeniser.form(t))
             i += 1
         elif tokeniser.form(t) == "(":
-            list.append(_parse_sexpr(tokeniser, tokens, i))
+            list.append(_parse_sexpr(tokens, tokeniser, i))
         else:
             raise Error("expected valid element type at " + str(t.line) + ":" + str(t.column))
         t = tokens[i]

@@ -12,9 +12,11 @@ struct JSGlobalContext:
 
     fn __moveinit__(inout self, owned other: JSContext):
         self.ptr = other.ptr
+        other.ptr = UnsafePointer[NoneType]()
 
     fn __del__(owned self):
-        JS.js_global_context_release(self.ptr)
+        if self.ptr:
+            JS.js_global_context_release(self.ptr)
 
     fn get_pointer(self) -> UnsafePointer[NoneType]:
         return self.ptr
@@ -29,9 +31,11 @@ struct JSGlobalContext:
 struct JSContext:
     var ptr: UnsafePointer[NoneType]
 
+    @implicit
     fn __init__(inout self, ctx: JSGlobalContext):
         self.ptr = ctx.ptr
 
+    @implicit
     fn __init__(inout self, ctx: UnsafePointer[NoneType]):
         self.ptr = ctx
     

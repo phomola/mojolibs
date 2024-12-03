@@ -5,7 +5,7 @@ from pathlib import Path
 from utils import Variant
 from collections import List, Dict, Optional
 from textkit import bytes_from_string
-from memory import Arc
+from memory import ArcPointer
 
 fn parse_grammar(input: String) raises -> Grammar:
     return parse_grammar(bytes_from_string(input))
@@ -77,7 +77,7 @@ fn _parse_rule(tokeniser: Tokeniser, tokens: List[Token], inout i: Int) raises -
                             else:
                                 return None
                 return avm
-            return Rule(lhs, rhs, f)
+            return Rule(lhs, rhs, f^)
         if t.type != word:
             raise Error("expected identifier or '.' at " + str(t.line) + ":" + str(t.column))
         rhs.append(tokeniser.form(t))
@@ -192,7 +192,7 @@ fn _parse_edge(tokeniser: Tokeniser, tokens: List[Token], inout i: Int) raises -
         raise Error("expected '-' at " + str(t.line) + ":" + str(t.column))
     i += 1
     t = tokens[i]
-    return Edge(start, end, cat, avm, 0, False, List[Arc[Edge]]())
+    return Edge(start, end, cat, avm, 0, False, List[ArcPointer[Edge]]())
 
 fn _parse_avm(tokeniser: Tokeniser, tokens: List[Token], inout i: Int) raises -> AVM:
     var t = tokens[i]
