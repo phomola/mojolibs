@@ -21,7 +21,11 @@ struct Term(Hashable, EqualityComparable, Stringable, Writable):
         return not (self == other)
 
     fn __hash__(self) -> UInt:
-        return hash(self.functor)
+        var h = 17
+        h = 31 * h + hash(self.functor)
+        for arg in self.args:
+            h = 31 * h + hash(arg)
+        return h
 
     fn __str__(self) -> String:
         var s = self.functor
