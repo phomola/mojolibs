@@ -27,6 +27,7 @@ struct JSValue:
     fn __init__(inout self, ptr: UnsafePointer[NoneType]):
         self.ptr = ptr
 
+    @implicit
     fn __init__(inout self, object: JSObject):
         self.ptr = object.ptr
 
