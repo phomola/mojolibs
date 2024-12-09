@@ -20,7 +20,7 @@ struct InternedString(EqualityComparable):
             self.ptr = so.value().ptr
         else:
             self.ptr = RC(val)
-            strings[val] = self.ptr
+            strings[val] = InternedString(self.ptr)
     
     fn __eq__(self, istr: Self) -> Bool:
         return self.ptr.pc == istr.ptr.pc
