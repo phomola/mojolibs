@@ -1,7 +1,7 @@
 from utils import Variant
 from collections import List, Dict, Optional
 from textkit.utils import string_from_bytes, bytes_from_string
-from textkit import Tokeniser, Token, word, symbol, string, integer, eol, eof
+from textkit import Tokeniser, Token, word, symbol, string, integer, real, eol, eof
 
 @value
 struct Identifier(Stringable):
@@ -65,6 +65,9 @@ fn _parse_sexpr(tokens: List[Token], tokeniser: Tokeniser, inout i: Int) raises 
             i += 1
         elif t.type == integer:
             list.append(atol(tokeniser.form(t)))
+            i += 1
+        elif t.type == real:
+            list.append(atof(tokeniser.form(t)))
             i += 1
         elif t.type == string:
             list.append(tokeniser.form(t))
