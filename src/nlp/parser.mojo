@@ -1,48 +1,50 @@
 from nlp import AVM, AVP, Chart, Edge, Grammar, Rule
-from textkit import tokenise, Token, word, symbol, string, number, eol, eof
+from textkit import Tokeniser, Token, word, symbol, string, integer, eol, eof
 from sys import argv, stderr, exit
 from pathlib import Path
 from utils import Variant
 from collections import List, Dict, Optional
 from textkit import bytes_from_string
-from memory import Arc
+from memory import ArcPointer
 
 fn parse_grammar(input: String) raises -> Grammar:
     return parse_grammar(bytes_from_string(input))
 
 fn parse_grammar(input: List[UInt8]) raises -> Grammar:
-    var tokens = tokenise(input, word_chars="_'")
+    var tokeniser = Tokeniser(input, word_chars="_'")
+    var tokens = tokeniser.tokenise()
     var i = 0
-    return _parse_grammar(tokens, i)
+    return _parse_grammar(tokeniser, tokens, i)
 
 fn parse_chart(input: String) raises -> Chart:
     return parse_chart(bytes_from_string(input))
 
 fn parse_chart(input: List[UInt8]) raises -> Chart:
-    var tokens = tokenise(input, word_chars="_'")
+    var tokeniser = Tokeniser(input, word_chars="_'")
+    var tokens = tokeniser.tokenise()
     var i = 0
-    return _parse_chart(tokens, i)
+    return _parse_chart(tokeniser, tokens, i)
 
-fn _parse_grammar(tokens: List[Token], inout i: Int) raises -> Grammar:
+fn _parse_grammar(tokeniser: Tokeniser, tokens: List[Token], inout i: Int) raises -> Grammar:
     var rules = List[Rule]()
     while True:
-        var rule = _parse_rule(tokens, i)
+        var rule = _parse_rule(tokeniser, tokens, i)
         if rule:
             rules.append(rule.value())
         else:
             break
     return Grammar(rules)
 
-fn _parse_rule(tokens: List[Token], inout i: Int) raises -> Optional[Rule]:
+fn _parse_rule(tokeniser: Tokeniser, tokens: List[Token], inout i: Int) raises -> Optional[Rule]:
     var t = tokens[i]
     if t.type == eof:
         return None
     if t.type != word:
         raise Error("expected identifier at " + str(t.line) + ":" + str(t.column))
-    var lhs = t.form
+    var lhs = tokeniser.form(t)
     i += 1
     t = tokens[i]
-    if t.form != ">":
+    if tokeniser.form(t) != ">":
         raise Error("expected '>' at " + str(t.line) + ":" + str(t.column))
     var rhs = List[String]()
     var idx = 0
@@ -50,7 +52,7 @@ fn _parse_rule(tokens: List[Token], inout i: Int) raises -> Optional[Rule]:
     t = tokens[i]
     var annotations = List[Annotation]()
     while True:
-        if t.form == ".":
+        if tokeniser.form(t) == ".":
             i += 1
             fn f(avms: List[AVM]) -> Optional[AVM]:
                 var avm = AVM(Dict[String, Variant[String, AVM]]())
@@ -75,12 +77,12 @@ fn _parse_rule(tokens: List[Token], inout i: Int) raises -> Optional[Rule]:
                             else:
                                 return None
                 return avm
-            return Rule(lhs, rhs, f)
+            return Rule(lhs, rhs, f^)
         if t.type != word:
             raise Error("expected identifier or '.' at " + str(t.line) + ":" + str(t.column))
-        rhs.append(t.form)
+        rhs.append(tokeniser.form(t))
         i += 1
-        for annotation in _parse_annotations(tokens, i, idx):
+        for annotation in _parse_annotations(tokeniser, tokens, i, idx):
             annotations.append(annotation[])
         t = tokens[i]
         idx += 1
@@ -97,39 +99,39 @@ struct Annotation:
             avm = AVM(AVP(self.path[i], avm))
         return avm
 
-fn _parse_annotations(tokens: List[Token], inout i: Int, idx: Int) raises -> List[Annotation]:
+fn _parse_annotations(tokeniser: Tokeniser, tokens: List[Token], inout i: Int, idx: Int) raises -> List[Annotation]:
     var t = tokens[i]
     if t.type == eof:
         raise Error("unexpected EOF")
-    if t.form != "(":
+    if tokeniser.form(t) != "(":
         raise Error("expected '(' at " + str(t.line) + ":" + str(t.column))
     i += 1
     t = tokens[i]
     var annotations = List[Annotation]()
     while True:
-        if t.form == ")":
+        if tokeniser.form(t) == ")":
             i += 1
             return annotations
-        if t.form == "=":
+        if tokeniser.form(t) == "=":
             annotations.append(Annotation(idx, List[String](), ""))
-        elif t.form == ">":
+        elif tokeniser.form(t) == ">":
             i += 1
             t = tokens[i]
             if t.type != word:
                 raise Error("expected identifier at " + str(t.line) + ":" + str(t.column))
-            annotations.append(Annotation(idx, List(t.form), ""))
+            annotations.append(Annotation(idx, List(str(tokeniser.form(t))), ""))
         elif t.type == word:
             var path = List[String]()
             while True:
                 if t.type != word:
                     raise Error("expected identifier at " + str(t.line) + ":" + str(t.column))
-                path.append(t.form)
+                path.append(tokeniser.form(t))
                 i += 1
                 t = tokens[i]
-                if t.form == ".":
+                if tokeniser.form(t) == ".":
                     i += 1
                     t = tokens[i]
-                elif t.form == "=":
+                elif tokeniser.form(t) == "=":
                     break
                 else:
                     raise Error("expected '=' or '.' at " + str(t.line) + ":" + str(t.column))
@@ -137,86 +139,86 @@ fn _parse_annotations(tokens: List[Token], inout i: Int, idx: Int) raises -> Lis
             t = tokens[i]
             if t.type != word:
                 raise Error("expected identifier at " + str(t.line) + ":" + str(t.column))
-            var value = t.form
+            var value = tokeniser.form(t)
             annotations.append(Annotation(idx, path, value))
         else:
             raise Error("expected '=', '>', ')' or identifier at " + str(t.line) + ":" + str(t.column))
         i += 1
         t = tokens[i]
 
-fn _parse_chart(tokens: List[Token], inout i: Int) raises -> Chart:
+fn _parse_chart(tokeniser: Tokeniser, tokens: List[Token], inout i: Int) raises -> Chart:
     var chart = Chart()
     while True:
-        var edge = _parse_edge(tokens, i)
+        var edge = _parse_edge(tokeniser, tokens, i)
         if edge:
             chart.add(edge.value())
         else:
             break
     return chart
 
-fn _parse_edge(tokens: List[Token], inout i: Int) raises -> Optional[Edge]:
+fn _parse_edge(tokeniser: Tokeniser, tokens: List[Token], inout i: Int) raises -> Optional[Edge]:
     var t = tokens[i]
     if t.type == eof:
         return None
-    if t.form != "-":
+    if tokeniser.form(t) != "-":
         raise Error("expected '-' at " + str(t.line) + ":" + str(t.column))
     i += 1
     t = tokens[i]
-    if t.type != number:
+    if t.type != integer:
         raise Error("expected number at " + str(t.line) + ":" + str(t.column))
-    var start = atol(t.form)
+    var start = atol(tokeniser.form(t))
     i += 1
     t = tokens[i]
-    if t.form != "-":
+    if tokeniser.form(t) != "-":
         raise Error("expected '-' at " + str(t.line) + ":" + str(t.column))
     i += 1
     t = tokens[i]
     if t.type != word:
         raise Error("expected identifier at " + str(t.line) + ":" + str(t.column))
-    var cat = t.form
+    var cat = tokeniser.form(t)
     i += 1
-    var avm = _parse_avm(tokens, i)
+    var avm = _parse_avm(tokeniser, tokens, i)
     t = tokens[i]
-    if t.form != "-":
+    if tokeniser.form(t) != "-":
         raise Error("expected '-' at " + str(t.line) + ":" + str(t.column))
     i += 1
     t = tokens[i]
-    if t.type != number:
+    if t.type != integer:
         raise Error("expected number at " + str(t.line) + ":" + str(t.column))
-    var end = atol(t.form)
+    var end = atol(tokeniser.form(t))
     i += 1
     t = tokens[i]
-    if t.form != "-":
+    if tokeniser.form(t) != "-":
         raise Error("expected '-' at " + str(t.line) + ":" + str(t.column))
     i += 1
     t = tokens[i]
-    return Edge(start, end, cat, avm, 0, False, List[Arc[Edge]]())
+    return Edge(start, end, cat, avm, 0, False, List[ArcPointer[Edge]]())
 
-fn _parse_avm(tokens: List[Token], inout i: Int) raises -> AVM:
+fn _parse_avm(tokeniser: Tokeniser, tokens: List[Token], inout i: Int) raises -> AVM:
     var t = tokens[i]
     if t.type == eof:
         raise Error("unexpected EOF")
-    if t.form != "[":
+    if tokeniser.form(t) != "[":
         raise Error("expected '[' at " + str(t.line) + ":" + str(t.column))
     i += 1
     t = tokens[i]
     var features = Dict[String, Variant[String, AVM]]()
     while True:
-        if t.form == "]":
+        if tokeniser.form(t) == "]":
             i += 1
             return AVM(features)
         if t.type != word:
             raise Error("expected identifier  or ']' at " + str(t.line) + ":" + str(t.column))
-        var key = t.form
+        var key = tokeniser.form(t)
         i += 1
         t = tokens[i]
-        if t.form != ":":
+        if tokeniser.form(t) != ":":
             raise Error("expected ':' at " + str(t.line) + ":" + str(t.column))
         i += 1
         t = tokens[i]
         if t.type != string:
             raise Error("expected identifier at " + str(t.line) + ":" + str(t.column))
-        var value = t.form
+        var value: String = tokeniser.form(t)
         features[key] = value
         i += 1
         t = tokens[i]

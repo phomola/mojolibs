@@ -3,7 +3,7 @@ from utils import StringRef
 from textkit import CStr
 from .jslib import JS, c_null
 
-struct JSString(Stringable,Formattable):
+struct JSString(Stringable, Writable):
     var ptr: UnsafePointer[NoneType]
 
     fn __init__(inout self, string: String):
@@ -18,17 +18,19 @@ struct JSString(Stringable,Formattable):
 
     fn __moveinit__(inout self, owned other: JSString):
         self.ptr = other.ptr
+        other.ptr = UnsafePointer[NoneType]()
 
     fn __del__(owned self):
-        JS.js_string_release(self.ptr)
+        if self.ptr:
+            JS.js_string_release(self.ptr)
 
     fn __str__(self) -> String:
         var max_size = JS.js_string_get_maximum_utf8_cstring_size(self.ptr)
         var buffer = UnsafePointer[UInt8].alloc(max_size)
         _ = JS.js_string_get_utf8_cstring(self.ptr, buffer, max_size)
-        var string: String = StringRef(buffer)
+        var string: String = StringRef(ptr=buffer)
         buffer.free()
         return string
 
-    fn format_to(self, inout writer: Formatter):
+    fn write_to[W: Writer](self, inout writer: W):
         writer.write(str(self))
