@@ -19,6 +19,5 @@ jobs:
           curl -ssL https://magic.modular.com/46209fb5-f184-4296-8fc6-949ed7625c9a | bash
           source /home/runner/.bash_profile
           magic self-update
-          magic update max
           magic run mojo --version
           magic run mojo test -I src tests
