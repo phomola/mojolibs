@@ -16,6 +16,8 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y g++
-          curl -ssL https://magic.modular.com/50fdd5ae-c771-4367-bf71-f4b2320317cf | bash
+          curl -ssL https://magic.modular.com/46209fb5-f184-4296-8fc6-949ed7625c9a | bash
           source /home/runner/.bash_profile
+          magic self-update
+          magic run mojo --version
           magic run mojo test -I src tests

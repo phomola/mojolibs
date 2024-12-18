@@ -1,6 +1,6 @@
 [project]
 authors = ["Petr Homola <homola.p@gmail.com>"]
-channels = ["conda-forge", "https://conda.modular.com/max-nightly"]
+channels = ["conda-forge", "https://conda.modular.com/max"]
 description = "Add a short description here"
 name = "mojolibs"
 platforms = ["osx-arm64", "linux-64"]
@@ -9,4 +9,4 @@ version = "0.1.0"
 [tasks]
 
 [dependencies]
-max = ">=24.6.0.dev2024091905,<25"
+max = ">=24.6.0,<25"
